@@ -1,0 +1,48 @@
+import unittest
+from cryptanalysis import modinv, CRT_pow
+
+class SimpleTestCase(unittest.TestCase):
+    def product(self, factors):
+        n = 1
+        for p, k in factors.items():
+            n *= p**k
+
+        return n
+
+    def test_modinv(self):
+        self.assertEqual(modinv(1, 30), 1)
+        self.assertEqual(modinv(7, 30), 13)
+        self.assertEqual(modinv(11, 30), 11)
+        with self.assertRaises(ZeroDivisionError):
+            modinv(0, 30)
+        with self.assertRaises(ZeroDivisionError):
+            modinv(2, 30)
+        with self.assertRaises(ZeroDivisionError):
+            modinv(3, 30)
+        with self.assertRaises(ZeroDivisionError):
+            modinv(4, 30)
+        self.assertEqual(modinv(165877, 56456), 55421)
+
+    def test_CRT_pow(self):
+        factors = {7: 1, 53: 1, 337: 1, 349: 1}
+        x, y, n = 6, 154, self.product(factors)
+        self.assertEqual(pow(x, y, n), CRT_pow(x, y, factors))
+
+        factors = {3: 1, 31: 1, 35189051: 1}
+        x, y, n = 10, 234, self.product(factors)
+        self.assertEqual(pow(x, y, n), CRT_pow(x, y, factors))
+
+        factors = {3: 2, 31: 1, 35189051: 1}
+        x, y, n = 10, 234, self.product(factors)
+        self.assertEqual(pow(x, y, n), CRT_pow(x, y, factors))
+
+        factors = {3: 4, 31: 2, 35189051: 3}
+        x, y, n = 10, 234, self.product(factors)
+        self.assertEqual(pow(x, y, n), CRT_pow(x, y, factors))
+
+        factors = {2: 2, 19: 2, 35189051: 3}
+        x, y, n = 10, 234, self.product(factors)
+        self.assertEqual(pow(x, y, n), CRT_pow(x, y, factors))
+
+if __name__ == '__main__':
+    unittest.main()
