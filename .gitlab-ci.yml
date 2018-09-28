@@ -1,0 +1,21 @@
+image: python:3.7-alpine
+
+variables:
+  PYTHON: python3
+
+stages:
+  - test
+  - package
+
+unittest:
+  stage: test
+  script:
+    - $PYTHON -m unittest
+
+wheel:
+  stage: package
+  script:
+    - $PYTHON -m pip install --user --upgrade setuptools wheel
+    - $PYTHON setup.py sdist bdist_wheel
+
+# vim: sw=2 sts=2 et ai
