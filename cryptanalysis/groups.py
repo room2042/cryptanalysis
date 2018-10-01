@@ -11,6 +11,14 @@ class GenericGroup:
         self._generator = None
         self._order = None
 
+    def __call__(self, value):
+        """create an element in the group"""
+        if isinstance(value, self.GroupElement):
+            # return the value if already an element
+            return value
+
+        return self.GroupElement(self, value)
+
     @property
     def factored_order(self):
         if self._factored_order is None:
@@ -64,7 +72,7 @@ class GenericGroup:
             method = self.baby_step_giant_step
         return method(h, base)
 
-    class GenericGroupElement:
+    class GroupElement:
         def __init__(self, group):
             self.group = group
             self._factored_order = None
@@ -120,14 +128,6 @@ class MultiplicativeGroup(GenericGroup):
             return False
 
         return self.n == other.n
-
-    def __call__(self, value):
-        """create an element in the group"""
-        if isinstance(value, self.Element):
-            # return the value if already an element
-            return value
-
-        return self.Element(self, value)
 
     @property
     def order(self):
@@ -194,7 +194,7 @@ class MultiplicativeGroup(GenericGroup):
             method = self.pohlighellman
         return method(h, base)
 
-    class Element(GenericGroup.GenericGroupElement):
+    class GroupElement(GenericGroup.GroupElement):
         def __init__(self, group, value):
             super().__init__(group)
 
