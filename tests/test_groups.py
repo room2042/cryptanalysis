@@ -33,8 +33,10 @@ class GroupOperationsTestCase(unittest.TestCase):
         self.assertEqual(self.G4.order, 150)
 
     def test_group_generator(self):
-        self.assertEqual(self.G.generator(22), 5)
-        self.assertEqual(self.G5.generator(8100), self.g5)
+        g = self.G.generator(22)
+        self.assertEqual(g.order, 22)
+        g = self.G5.generator(8100)
+        self.assertEqual(g.order, 8100)
 
     def test_element_eq(self):
         self.assertEqual(self.g, self.g)
@@ -131,6 +133,7 @@ class CompositeGroupTestCase(unittest.TestCase):
         self.G1 = MultiplicativeGroup([p, q])
         self.G2 = MultiplicativeGroup({p: 2, q: 3})
         self.G3 = MultiplicativeGroup([2, 3, 5, 7, 11, 13])
+        self.G4 = MultiplicativeGroup({2: 8, 3: 2})
         self.g1 = self.G1(5)
         self.g2 = self.G2(5)
 
@@ -144,8 +147,16 @@ class CompositeGroupTestCase(unittest.TestCase):
         self.assertEqual(self.G2.order, 1280180)
 
     def test_group_generator(self):
-        self.assertEqual(self.G1.generator(110), 2)
-        self.assertEqual(self.G2.generator(58190), 2)
+        g = self.G1.generator(110)
+        self.assertEqual(g.order, 110)
+        g = self.G2.generator(58190)
+        self.assertEqual(g.order, 58190)
+        g = self.G4.generator(2**6)
+        self.assertEqual(g.order, 2**6)
+        with self.assertRaises(ValueError):
+            self.G1.generator(3)
+        with self.assertRaises(ValueError):
+            self.G2.generator(11**2)
 
     def test_element_pow(self):
         self.assertEqual(self.g1 ** 5, 89)
