@@ -163,16 +163,32 @@ class MultiplicativeGroup(GenericGroup):
     def generator(self, order=None):
         """deterministic generator of specific order"""
         if order is None:
-            order = self.order
+            order = self.exponent
 
-        if self._generator is None:
-            for x in range(2, self.n):
-                g = self(x)
-                if g.order == order:
-                    self._generator = g
-                    return self._generator
+        if math.gcd(order, self.exponent) != order:
+            raise ValueError('no generator of order {} exists'.format(order))
 
-        return self._generator
+        factor = Factor(order)
+        factor.run()
+        g = 1
+        for p, k in factor.factors.items():
+            if p == 2 and k == 1:
+                # special case: -1 is the only element of order 2
+                gp = self(-1)
+                g *= gp
+                continue
+
+            e = self.exponent // (p**k)
+            for h in range(2, self.n-1):
+                if math.gcd(h, self.n) != 1:
+                    # element h is not part of the group
+                    continue
+
+                gp = self(h)**e
+                if gp != 1:
+                    g *= gp
+                    break
+        return g
 
     def pohlighellman(self, h, base):
         """Pohlig–Hellman discrete logarithm algorithm"""
