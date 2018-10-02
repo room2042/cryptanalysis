@@ -1,13 +1,41 @@
-def modinv(a, mod):
-    """modular inverse of a modulo mod"""
-    a, x, u, m = a % mod, 0, 1, mod
-    while a != 0:
-        x, u, m, a = u, x - (m//a)*u, a, m % a
+try:
+    import gmpy2
 
-    if m != 1:
-        raise ZeroDivisionError('modular inverse does not exist')
+    def isqrt(n):
+        return int(gmpy2.isqrt(n))
 
-    return x % mod
+    def lcm(a, b):
+        return int(gmpy2.lcm(a, b))
+
+    def modinv(a, mod):
+        return int(gmpy2.invert(a, mod))
+except ImportError:
+    import math
+
+    def isqrt(n):
+        """largest integer r such that r**2 <= n"""
+        return math.floor(math.sqrt(n))
+
+    def lcm(a, b):
+        """lowest common multiple of integers a and b"""
+        if a == 0 or b == 0:
+            return 0
+
+        return abs(a * b) // math.gcd(a, b)
+
+    def modinv(a, mod):
+        """modular inverse of a modulo mod"""
+        a, x, u, m = a % mod, 0, 1, mod
+        while a != 0:
+            x, u, m, a = u, x - (m//a)*u, a, m % a
+
+        if m != 1:
+            raise ZeroDivisionError('modular inverse does not exist')
+
+        return x % mod
+
+def ceildiv(a, b):
+    return -(-a // b)
 
 def CRT(a_list, n_list):
     """compute x mod prod(n_i) from the congruences x = a_i (mod n_i)"""

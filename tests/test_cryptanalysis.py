@@ -1,5 +1,5 @@
 import unittest
-from cryptanalysis import modinv, CRT_pow
+from cryptanalysis import isqrt, lcm, modinv, CRT_pow
 
 class SimpleTestCase(unittest.TestCase):
     def product(self, factors):
@@ -8,6 +8,16 @@ class SimpleTestCase(unittest.TestCase):
             n *= p**k
 
         return n
+
+    def test_isqrt(self):
+        self.assertEqual(isqrt(24), 4)
+        self.assertEqual(isqrt(25), 5)
+        self.assertEqual(isqrt(26), 5)
+
+    def test_lcm(self):
+        self.assertEqual(lcm(4, 0), 0)
+        self.assertEqual(lcm(4, 6), 12)
+        self.assertEqual(lcm(21, 6), 42)
 
     def test_modinv(self):
         self.assertEqual(modinv(1, 30), 1)
