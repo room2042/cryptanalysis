@@ -22,6 +22,11 @@ class GroupOperationsTestCase(unittest.TestCase):
         self.assertEqual(self.G1, self.G2)
         self.assertNotEqual(self.G1, self.G3)
 
+    def test_group_exponent(self):
+        self.assertEqual(self.G.exponent, 22)
+        self.assertEqual(self.G3.exponent, 10)
+        self.assertEqual(self.G4.exponent, 150)
+
     def test_group_order(self):
         self.assertEqual(self.G.order, 22)
         self.assertEqual(self.G3.order, 10)
@@ -128,6 +133,11 @@ class CompositeGroupTestCase(unittest.TestCase):
         self.G3 = MultiplicativeGroup([2, 3, 5, 7, 11, 13])
         self.g1 = self.G1(5)
         self.g2 = self.G2(5)
+
+    def test_group_exponent(self):
+        self.assertEqual(self.G1.exponent, 110)
+        self.assertEqual(self.G2.exponent, 58190)
+        self.assertEqual(self.G3.exponent, 60)
 
     def test_group_order(self):
         self.assertEqual(self.G1.order, 220)

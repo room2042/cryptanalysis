@@ -1,4 +1,5 @@
 import random
+from cryptanalysis import lcm
 from math import gcd
 
 class Factor:
@@ -42,6 +43,20 @@ class Factor:
             n *= p**k
 
         return self.n // n
+
+    @property
+    def carmichael(self):
+        """compute the Carmichael function"""
+        self.run()
+        _lambda = 1
+        for p, k in self.factors.items():
+            if p == 2 and k > 2:
+                lambda_p = pow(p, k-2) * (p - 1)
+            else:
+                lambda_p = pow(p, k-1) * (p - 1)
+
+            _lambda = lcm(_lambda, lambda_p)
+        return _lambda
 
     @property
     def phi(self):

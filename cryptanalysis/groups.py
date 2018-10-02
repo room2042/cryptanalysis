@@ -9,6 +9,7 @@ class GenericGroup:
         self.identity = None
         self._factored_order = None
         self._generator = None
+        self._exponent = None
         self._order = None
 
     def __call__(self, value):
@@ -130,6 +131,14 @@ class MultiplicativeGroup(GenericGroup):
         return self.n == other.n
 
     @property
+    def exponent(self):
+        """least common multiple of the orders of all group elements"""
+        if self._exponent is None:
+            self._exponent = self.factor.carmichael
+
+        return self._exponent
+
+    @property
     def order(self):
         """number of elements in the group"""
         if self._order is None:
@@ -142,7 +151,9 @@ class MultiplicativeGroup(GenericGroup):
         """all possible orders of the subgroups"""
         if self._divisors is None:
             divisors = {1}
-            for p, k in self.factored_order.items():
+            factor = Factor(self.exponent)
+            factor.run()
+            for p, k in factor.factors.items():
                 divisors |= {d * p**e for e in range(1, k+1) for d in divisors}
 
             self._divisors = sorted(divisors)
