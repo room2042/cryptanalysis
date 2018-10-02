@@ -1,6 +1,6 @@
 import math
 
-from cryptanalysis import modinv, CRT, CRT_pow
+from cryptanalysis import ceildiv, isqrt, modinv, CRT, CRT_pow
 from cryptanalysis.factor import Factor
 
 class GenericGroup:
@@ -43,8 +43,8 @@ class GenericGroup:
     def baby_step_giant_step(self, h, base, baby_steps=None):
         """baby-step, giant-step discrete logarithm algorithm"""
         if baby_steps == None:
-            baby_steps = math.ceil(math.sqrt(base.order))
-        giant_steps = math.ceil(base.order / baby_steps)
+            baby_steps = isqrt(base.order) + 1
+        giant_steps = ceildiv(base.order, baby_steps)
 
         # construct lookup table T with baby steps
         # T contains { h, h g^-1, ..., h g^-(baby_steps-1) }
