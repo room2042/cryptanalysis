@@ -1,6 +1,6 @@
 import math
 import unittest
-from cryptanalysis.groups import MultiplicativeGroup
+from cryptanalysis.groups import MultiplicativeGroup, SchnorrGroup
 
 class GroupOperationsTestCase(unittest.TestCase):
     def setUp(self):
@@ -179,6 +179,16 @@ class CompositeGroupTestCase(unittest.TestCase):
         self.assertEqual(self.G1.dlog(89, self.g1, self.G1.pohlighellman), 5)
         self.assertEqual(self.G2.dlog(3125, self.g2, self.G2.pohlighellman), 5)
         self.assertEqual(self.G3.dlog(9571, self.G3(65537)), 8)
+
+class SchnorrGroupTestCase(unittest.TestCase):
+    def setUp(self):
+        p = 91963351287114509810976103701583676604219034744988050402811969296353490883155020381014035655928792644506981621199078746939173961001551882502698720098128716509792416686791624573908434518769759371967445834633509375433924324143955705197779381523827817772395764887436528163855894063455209430781092753045723959471
+        q = 170585623065927333025452925743256993957
+        self.G = SchnorrGroup(p, q)
+        self.g = self.G.generator
+
+    def test_group_generator(self):
+        self.assertEqual(self.g ** self.G.q, 1)
 
 if __name__ == '__main__':
     unittest.main()
