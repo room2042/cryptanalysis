@@ -1,4 +1,5 @@
 import math
+import os
 
 from cryptanalysis import ceildiv, isqrt, modinv, CRT, CRT_pow
 from cryptanalysis.factor import Factor
@@ -370,3 +371,73 @@ class MultiplicativeGroup(GenericGroup):
             if type(other) is not int:
                 raise ValueError('need to repeat with integer value')
             return self ** other
+
+class SchnorrGroup(MultiplicativeGroup):
+    """Finite Field Cryptography (FFC) Schnorr group
+
+    A Schnorr group is a subgroup of prime order q inside a
+    multipicative group of the form p = kq + 1.
+    See https://en.wikipedia.org/wiki/Schnorr_group for more
+    information.
+
+    To generate such a group, first call the method
+    `G.generate_primes()` on the object `G`. To use a generator of order
+    `G.q` use `G.generator`."""
+    def __init__(self, p=None, q=None):
+        self.p = p
+        self.q = q
+
+        if self.p is not None and self.q is not None:
+            super().__init__(n=self.p)
+
+    @property
+    def n(self):
+        return self.p
+
+    @n.setter
+    def n(self, n):
+        self.p = n
+
+    @property
+    def generator(self):
+        if self._generator is None:
+            self._generator = super().generator(self.q)
+
+        return self._generator
+
+    @property
+    def factored_order(self):
+        if self._factored_order is None:
+            factor = Factor(self.order)
+            factor.add_factor(self.q)
+            factor.run()
+            self._factored_order = factor.factors
+
+        return self._factored_order
+
+    def generate_primes(self, L=2048, N=256):
+        """Generation of the probable primes p and q.
+
+        L - desired bit length of the prime p
+        N - desired bit length of the prime q"""
+        if not 1 < N < L:
+            raise ValueError('incorrect bit lengths, 1 < N < L needed')
+
+        while True:
+            p = q = 4 # initalize with a composite number
+            factor = Factor(q)
+            while not factor.isprime(q):
+                U = int.from_bytes(os.urandom((N+7) // 8), byteorder='big')
+                U %= (1 << N-1)
+                U |= (1 << N-1) # U.bit_length() = N
+                q = U + 1 - (U % 2) # q is odd
+                factor = Factor(q)
+
+            for i in range(4*L):
+                X = int.from_bytes(os.urandom((L+7) // 8), byteorder='big')
+                X %= (1 << L-1)
+                X |= (1 << L-1) # X.bit_length() = L
+                p = X - (X % (2*q)) + 1 # p = 1 (mod 2q)
+                if p.bit_length() >= L and factor.isprime(p):
+                    self.__init__(p, q)
+                    return (p, q)
