@@ -1,3 +1,6 @@
+import factor as factor
+import groups as groups
+
 try:
     import gmpy2
 
