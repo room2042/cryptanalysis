@@ -18,23 +18,29 @@ class Factor:
         elif len(self.factors) > 0:
             return '{} containing {}'.format(self.n, self.factors)
 
-    def run(self):
+    def run(self, first_run=True):
         if not self.isfactored():
-            self.smooth()
+            if first_run:
+                self.smooth()
             while not self.isfactored():
                 self.brent()
 
-    def add_factor(self, prime):
+    def add_factor(self, p, k=1):
         try:
-            self.factors[prime] += 1
+            self.factors[p] += k
         except KeyError:
-            self.factors[prime] = 1
+            self.factors[p] = k
 
     def add_cofactor(self, cofactor):
-        if self.isprime(cofactor):
+        if cofactor == 1:
+            return
+        elif self.isprime(cofactor):
             self.add_factor(cofactor)
         else:
-            self.brent(cofactor)
+            factor = Factor(cofactor)
+            factor.run(first_run=False)
+            for p, k in factor.factors.items():
+                self.add_factor(p, k)
 
     @property
     def cofactor(self):
@@ -171,12 +177,12 @@ class Factor:
             return True
         return False
 
-    def brent(self, n=None):
+    def brent(self):
         """Brent's Monte Carlo factorization algorithm"""
-        if n is None:
-            n = self.cofactor
-        if n%2 == 0:
-            return 2
+        n = self.cofactor
+        if n <= 2:
+            return
+
         y, c, m = random.randint(1, n-1), random.randint(1, n-1), random.randint(1, n-1)
         g, r, q = 1, 1, 1
         while g == 1:
