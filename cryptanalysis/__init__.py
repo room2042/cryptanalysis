@@ -14,7 +14,13 @@ except ImportError:
 
     def isqrt(n):
         """largest integer r such that r**2 <= n"""
-        return math.floor(math.sqrt(n))
+        guess = (n >> n.bit_length() // 2) + 1
+        result = (guess + n // guess) // 2
+        while abs(result - guess) > 1:
+            guess = result
+            result = (guess + n // guess) // 2
+
+        return result
 
     def lcm(a, b):
         """lowest common multiple of integers a and b"""
