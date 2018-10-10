@@ -70,6 +70,9 @@ class BrentTestCase(unittest.TestCase):
         for p, k in self.factors.items():
             self.assertIn(p, self.factor.factors)
             self.assertEqual(k, self.factor.factors[p])
+        
+        # test finished factoring
+        self.factor.brent()
 
 if __name__ == '__main__':
     unittest.main()
