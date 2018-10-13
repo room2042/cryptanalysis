@@ -23,6 +23,9 @@ class Factor:
             if first_run:
                 self.smooth()
             while not self.isfactored():
+                if self.n.bit_length() >= 80:
+                    print('factoring {} '
+                        '(this might take a while)'.format(self.n))
                 self.brent()
 
     def add_factor(self, p, k=1):
