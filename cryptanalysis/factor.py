@@ -15,7 +15,7 @@ class Factor:
     def __repr__(self):
         if self.isfactored():
             return '{} = {}'.format(self.n, self.factors)
-        elif len(self.factors) > 0:
+        else:
             return '{} containing {}'.format(self.n, self.factors)
 
     def run(self, first_run=True):
