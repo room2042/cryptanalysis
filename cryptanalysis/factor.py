@@ -1,5 +1,5 @@
 import random
-from cryptanalysis import lcm
+from cryptanalysis import isqrt, lcm
 from math import gcd
 
 class Factor:
@@ -206,6 +206,37 @@ class Factor:
                     break
 
         self.add_cofactor(g)
+
+    def fermat(self, ratio=(1, 1)):
+        """Fermat's factorization algorithm for known ratio of factors"""
+        n = self.cofactor
+        isqrt_n = isqrt(n)
+        if isqrt_n*isqrt_n == n:
+            self.add_cofactor(isqrt_n)
+            self.add_cofactor(isqrt_n)
+            return
+
+        common_factors = gcd(ratio[0], ratio[1])
+        u = ratio[0] // common_factors
+        v = ratio[1] // common_factors
+        n *= u * v
+        if n % 2 == 0 and n % 4 != 0:
+            # n needs to be odd or a multiple of four
+            n *= 4
+
+        a = isqrt(n) + 1
+        b2 = a*a - n
+        b = isqrt(b2)
+        while b*b != b2: 
+            a = a + 1 
+            b2 = a*a - n 
+            b = isqrt(b2)
+
+        factor1 = gcd(self.cofactor, a - b)
+        factor2 = gcd(self.cofactor, a + b)
+
+        self.add_cofactor(factor1)
+        self.add_cofactor(factor2)
 
     def smooth(self, max_prime=1048573):
         """factor a smooth number (number with many small primes)"""
