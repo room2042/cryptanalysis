@@ -1,6 +1,3 @@
-import factor as factor
-import groups as groups
-
 name = "cryptanalysis"
 
 try:
