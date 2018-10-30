@@ -375,6 +375,181 @@ class MultiplicativeGroup(GenericGroup):
             return self ** repeat
 
 
+class RSAGroup(MultiplicativeGroup):
+    """Module for cryptanalytic attacks on the RSA cryptosystem"""
+    def __init__(self, n, e=65537):
+        super().__init__(n)
+        self._p = None
+        self._q = None
+        self.e = e
+        self._d = None
+
+    @property
+    def p(self):
+        """the larger prime of the two"""
+        if self.factor.isfactored():
+            self._q, self._p = sorted(self.factor.factors)
+        return self._p
+
+    @p.setter
+    def p(self, p):
+        if p > 1 and self.n % p == 0:
+            self.factor.add_cofactor(p)
+        else:
+            raise ValueError('{} is not a cofactor of {}'.format(p, self.n))
+
+    @property
+    def q(self):
+        """the smaller prime of the two"""
+        if self.factor.isfactored():
+            self._q, self._p = sorted(self.factor.factors)
+        return self._q
+
+    @q.setter
+    def q(self, q):
+        self.p = q
+
+    def phi(self, phi=None):
+        """Get or set the order of the group
+
+        If ``phi`` is not ``None``, factor ``n`` using the order of the group.
+        This algorithm to factor ``n`` is described in [RSA78].
+        “A method for obtaining digital signatures and public-key
+        cryptosystems”
+        DOI: 10.1145/359340.359342"""
+        if phi is None:
+            return self.order()
+
+        # factor n so we can compute phi again
+        pq_sum = self.n - phi + 1
+        pq_difference = isqrt(pq_sum**2 - 4*self.n)
+        q = (pq_sum - pq_difference) // 2
+        p = self.n // q
+
+        if not self.factor.isprime(q) or not self.factor.isprime(p):
+            raise ValueError('the value {} cannot equal phi'.format(phi))
+        self.factor.add_factor(q)
+        self.factor.add_factor(p)
+
+        return self.order()
+
+    @property
+    def d(self):
+        if self._d is not None:
+            return self._d
+
+        if self.factor.isfactored():
+            self._d = modinv(self.e, self.order())
+
+        return self._d
+
+    @d.setter
+    def d(self, d):
+        """factor n using known e and d
+
+        From [Bon99] “Twenty Years of Attacks on the RSA Cryptosystem”
+        URL: https://www.ams.org/journals/notices/199902/boneh.pdf
+
+        From [Mil76] “Riemann's Hypothesis and Tests for Primality”
+        DOI: 10.1145/800116.803773"""
+        self._d = d
+
+        # factor n using (e, d)
+        k = d * self.e - 1
+
+        x = y = 1
+        while x == 1 or y == 1:
+            g = self(random.randrange(2, self.n))
+            t = k
+            while t % 2 == 0:
+                t //= 2
+                x = int(g**t)
+                if x > 1:
+                    y = math.gcd(x - 1, self.n)
+                    if y > 1:
+                        break
+
+        self.factor.add_factor(y)
+        self.factor.add_factor(self.n // y)
+
+    def private_key(self, encoding=None, format=None,
+                    encryption_algorithm=None):
+        from cryptography.hazmat.backends import default_backend
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric.rsa import \
+            (RSAPublicNumbers, RSAPrivateNumbers,
+             rsa_crt_iqmp, rsa_crt_dmp1, rsa_crt_dmq1)
+
+        if encoding is None:
+            encoding = serialization.Encoding.PEM
+        if format is None:
+            format = serialization.PrivateFormat.PKCS8
+        if encryption_algorithm is None:
+            encryption_algorithm = serialization.NoEncryption()
+
+        dmp1 = rsa_crt_dmp1(self.d, self.p)
+        dmq1 = rsa_crt_dmq1(self.d, self.q)
+        iqmp = rsa_crt_iqmp(self.p, self.q)
+        public_numbers = RSAPublicNumbers(self.e, self.n)
+
+        sk = RSAPrivateNumbers(self.p, self.q, self.d, dmp1, dmq1, iqmp,
+                               public_numbers)
+        sk = sk.private_key(backend=default_backend())
+        return sk.private_bytes(encoding, format, encryption_algorithm)
+
+    def wiener(self):
+        """
+        Wiener's attack of when a small ``d`` is used
+
+        This attack might work for ::
+
+            d < n**(1/4 + \epsilon)
+
+        but is only guaranteed to work for ::
+
+            d \lesssim (1/2) n**(1/4)
+
+        Remark: A better attack exists by Boneh and Durfee.
+
+        For more information about the algorithms, see [WTY19].
+        DOI: 10.1007/978-3-030-21548-4_21
+        """
+        def convergent(fractions, j):
+            """compute the `j`th convergent of a continued fraction
+
+            Using the Euler-Wallis Theorem
+
+            :return (a, b) where the convergent is a / b"""
+            a2, a1, b2, b1 = 0, 1, 1, 0
+            for f in fractions[:j]:
+                a1, a2 = f*a1 + a2, a1
+                b1, b2 = f*b1 + b2, b1
+
+            return (a1, b1)
+
+        # compute the continued fractions
+        numerator, denominator = self.e, self.n
+        fractions = []
+        r = -1
+        while r != 0:
+            fractions.append(numerator // denominator)
+            r = numerator % denominator
+            numerator = denominator
+            denominator = r
+
+        # try to factor ``n``
+        for i in range(2, len(fractions)):
+            a, b = convergent(fractions, i)
+            if a > 0 and (self.e*b - 1) % a == 0:
+                try:
+                    self.phi((self.e*b - 1) // a)
+                    return True
+                except ValueError:
+                    continue
+
+        return False
+
+
 class SchnorrGroup(MultiplicativeGroup):
     """Finite Field Cryptography (FFC) Schnorr group
 
