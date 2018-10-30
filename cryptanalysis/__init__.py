@@ -1,5 +1,3 @@
-name = "cryptanalysis"
-
 try:
     import gmpy2
 
@@ -43,6 +41,7 @@ except ImportError:
         return x % mod
 
 def ceildiv(a, b):
+    """ceil division of a divides by b"""
     return -(-a // b)
 
 def CRT(a_list, n_list):

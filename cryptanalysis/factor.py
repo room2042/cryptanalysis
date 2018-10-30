@@ -3,9 +3,10 @@ from cryptanalysis import isqrt, lcm
 from math import gcd
 
 class Factor:
+    """Factorization module"""
+
     small_primes = {2, 3, 5, 7}
 
-    """Factorization module"""
     def __init__(self, n):
         if n < 2:
             raise ValueError('n should be a positive number bigger than 2')
@@ -19,6 +20,7 @@ class Factor:
             return '{} containing {}'.format(self.n, self.factors)
 
     def run(self, first_run=True):
+        """try to factor the number with several algorithms"""
         if not self.isfactored():
             if first_run:
                 self.smooth()
@@ -29,12 +31,14 @@ class Factor:
                 self.brent()
 
     def add_factor(self, p, k=1):
+        """add a prime factor p with multiplicity k"""
         try:
             self.factors[p] += k
         except KeyError:
             self.factors[p] = k
 
     def add_cofactor(self, cofactor):
+        """add a (composite) factor to factor into primes"""
         if cofactor == 1:
             return
         elif self.isprime(cofactor):
@@ -47,6 +51,7 @@ class Factor:
 
     @property
     def cofactor(self):
+        """the number remaining to be factored"""
         n = 1
         for p, k in self.factors.items():
             n *= p**k
@@ -57,15 +62,15 @@ class Factor:
     def carmichael(self):
         """compute the Carmichael function"""
         self.run()
-        _lambda = 1
+        lambda_ = 1
         for p, k in self.factors.items():
             if p == 2 and k > 2:
                 lambda_p = pow(p, k-2) * (p - 1)
             else:
                 lambda_p = pow(p, k-1) * (p - 1)
 
-            _lambda = lcm(_lambda, lambda_p)
-        return _lambda
+            lambda_ = lcm(lambda_, lambda_p)
+        return lambda_
 
     @property
     def phi(self):
@@ -134,6 +139,7 @@ class Factor:
             s += 1
 
         # deterministic special cases
+        # from https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
         if n < 2047:
             return not iscomposite(2, d, s, n)
         if n < 1373653:
