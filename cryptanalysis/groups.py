@@ -23,6 +23,7 @@ class GenericGroup:
 
     @property
     def factored_order(self):
+        """factors of the group order"""
         if self._factored_order is None:
             factor = Factor(self.order)
             factor.run()
@@ -70,6 +71,7 @@ class GenericGroup:
         return None
 
     def dlog(self, h, base, method=None):
+        """compute the discrete logarithm"""
         if method is None:
             method = self.baby_step_giant_step
         return method(h, base)
@@ -81,6 +83,7 @@ class GenericGroup:
 
         @property
         def factored_order(self):
+            """factored order of the group element"""
             if self._factored_order is None:
                 factor = Factor(self.order)
                 factor.run()
@@ -89,13 +92,16 @@ class GenericGroup:
             return self._factored_order
 
         def operator(self, other):
+            """operator imposed by the group"""
             raise NotImplemented()
 
         @property
         def inverse(self, other):
+            """inverse of a group element"""
             raise NotImplemented()
 
         def repeated_operator(self, repeat):
+            """repeatedly apply the group operator on the element"""
             raise NotImplemented()
 
 class MultiplicativeGroup(GenericGroup):
@@ -367,7 +373,7 @@ class MultiplicativeGroup(GenericGroup):
             return self * other
 
         def repeated_operator(self, repeat):
-            """repeatedly apply the group operator"""
+            """repeatedly apply the group operator on the element"""
             if type(other) is not int:
                 raise ValueError('need to repeat with integer value')
             return self ** other
@@ -400,6 +406,7 @@ class SchnorrGroup(MultiplicativeGroup):
 
     @property
     def generator(self):
+        """generator of prime order of the group"""
         if self._generator is None:
             self._generator = super().generator(self.q)
 
