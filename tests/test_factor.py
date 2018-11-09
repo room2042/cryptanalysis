@@ -70,6 +70,28 @@ class FermatTestCase(unittest.TestCase):
         self.assertIn(p, factor.factors)
         self.assertIn(q, factor.factors)
 
+class PollardTestCase(unittest.TestCase):
+    def setUp(self):
+        self.factors = {
+                479971: 1,
+                480043: 1,
+                480059: 1,
+                480061: 1,
+            }
+        n = 1
+        for p, k in self.factors.items():
+            n *= p**k
+
+        self.factor = Factor(n)
+
+    def test_pollard_p1(self):
+        while not self.factor.isfactored():
+            self.factor.pollard_p1(128)
+
+        for p, k in self.factors.items():
+            self.assertIn(p, self.factor.factors)
+            self.assertEqual(k, self.factor.factors[p])
+
 class SmoothTestCase(unittest.TestCase):
     def setUp(self):
         self.factors = {

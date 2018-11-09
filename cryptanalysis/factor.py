@@ -1,6 +1,6 @@
 import random
-from cryptanalysis import isqrt, lcm
-from math import gcd
+from cryptanalysis import ceildiv, isqrt, lcm
+from math import log, gcd, inf
 
 class Factor:
     """Factorization module"""
@@ -192,7 +192,7 @@ class Factor:
         if n <= 2:
             return
 
-        y, c, m = random.randint(1, n-1), random.randint(1, n-1), random.randint(1, n-1)
+        y, c, m = random.randrange(1, n), random.randrange(1, n), random.randrange(1, n)
         g, r, q = 1, 1, 1
         while g == 1:
             x = y
@@ -246,6 +246,34 @@ class Factor:
 
         self.add_cofactor(factor1)
         self.add_cofactor(factor2)
+
+    def pollard_p1(self, bound, tries=inf):
+        """Pollard's p-1 factoring algorithm"""
+        n = self.cofactor
+
+        self.sieve(bound)
+        primes = sorted(self.small_primes)
+
+        while tries > 0:
+            tries -= 1
+            x = random.randrange(2, n)
+
+            gcd_ = gcd(x, n)
+            if gcd_ != 1:
+                self.add_cofactor(gcd_)
+                return
+
+            for q in primes:
+                if q > bound:
+                    break
+                Q = pow(q, ceildiv(log(n), log(q)))
+                x = pow(x, Q, n)
+
+                gcd_ = gcd(x-1, n)
+                if gcd_ != 1:
+                    self.add_cofactor(gcd_)
+                    return
+
 
     def smooth(self, max_prime=1048573):
         """factor a smooth number (number with many small primes)"""
