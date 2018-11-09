@@ -42,7 +42,7 @@ except ImportError:
 
 def ceildiv(a, b):
     """ceil division of a divides by b"""
-    return -(-a // b)
+    return int(-(-a // b))
 
 def CRT(a_list, n_list):
     """compute x mod prod(n_i) from the congruences x = a_i (mod n_i)"""
