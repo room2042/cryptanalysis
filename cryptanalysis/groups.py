@@ -1,3 +1,4 @@
+import hmac
 import math
 import os
 
@@ -448,3 +449,30 @@ class SchnorrGroup(MultiplicativeGroup):
                 if p.bit_length() >= L and factor.isprime(p):
                     self.__init__(p, q)
                     return (p, q)
+
+    def hash(self, m, H='sha256'):
+        """cryptographically hash a message to the group
+
+        m - input bytes to hash
+        H - hash function to use, as specified by hmac.digest()
+
+        See: https://crypto.stackexchange.com/questions/39877#39879"""
+        digest_size = hmac.new(b'', b'', H).digest_size
+        l = ceildiv(self.p.bit_length(), digest_size * 8) + 1
+        if l > digest_size * 8:
+            raise ValueError('hash function domain too small')
+
+        # build concatination of hashes
+        h = b''
+        for i in range(l):
+            key = i.to_bytes(digest_size, byteorder='big')
+            h += hmac.digest(key, m, H)
+
+        # map to an element in Z^*_p
+        h = int.from_bytes(h, byteorder='big')
+        h %= self.p - 1
+        h = self(h + 1)
+
+        # map to an element in Z^*_q
+        k = (self.p - 1) // self.q
+        return h ** k
