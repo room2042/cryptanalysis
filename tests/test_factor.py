@@ -25,10 +25,10 @@ class FactorTestCase(unittest.TestCase):
             Factor(-4)
 
     def test_carmichael(self):
-        self.assertEqual(5115037838417324496007394585520, self.factor.carmichael)
+        self.assertEqual(5115037838417324496007394585520, self.factor.carmichael())
 
     def test_phi(self):
-        self.assertEqual(1440394655298318578075682315282432000, self.factor.phi)
+        self.assertEqual(1440394655298318578075682315282432000, self.factor.phi())
 
 class FermatTestCase(unittest.TestCase):
     def test_fermat(self):

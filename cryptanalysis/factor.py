@@ -49,7 +49,6 @@ class Factor:
             for p, k in factor.factors.items():
                 self.add_factor(p, k)
 
-    @property
     def cofactor(self):
         """the number remaining to be factored"""
         n = 1
@@ -58,7 +57,6 @@ class Factor:
 
         return self.n // n
 
-    @property
     def carmichael(self):
         """compute the Carmichael function"""
         self.run()
@@ -72,7 +70,6 @@ class Factor:
             lambda_ = lcm(lambda_, lambda_p)
         return lambda_
 
-    @property
     def phi(self):
         """compute Euler's totient function"""
         self.run()
@@ -178,7 +175,7 @@ class Factor:
         """check if n is fully factored
 
         The method may add new factors to the factor list."""
-        cofactor = self.cofactor
+        cofactor = self.cofactor()
         if cofactor == 1:
             return True
         if self.isprime(cofactor):
@@ -188,7 +185,7 @@ class Factor:
 
     def brent(self):
         """Brent's Monte Carlo factorization algorithm"""
-        n = self.cofactor
+        n = self.cofactor()
         if n <= 2:
             return
 
@@ -218,7 +215,7 @@ class Factor:
 
     def fermat(self, ratio=(1, 1)):
         """Fermat's factorization algorithm for known ratio of factors"""
-        n = self.cofactor
+        n = self.cofactor()
         isqrt_n = isqrt(n)
         if isqrt_n*isqrt_n == n:
             self.add_cofactor(isqrt_n)
@@ -241,15 +238,15 @@ class Factor:
             b2 = a*a - n 
             b = isqrt(b2)
 
-        factor1 = gcd(self.cofactor, a - b)
-        factor2 = gcd(self.cofactor, a + b)
+        factor1 = gcd(self.cofactor(), a - b)
+        factor2 = gcd(self.cofactor(), a + b)
 
         self.add_cofactor(factor1)
         self.add_cofactor(factor2)
 
     def pollard_p1(self, bound, tries=inf):
         """Pollard's p-1 factoring algorithm"""
-        n = self.cofactor
+        n = self.cofactor()
 
         self.sieve(bound)
         primes = sorted(self.small_primes)
@@ -279,7 +276,7 @@ class Factor:
         """factor a smooth number (number with many small primes)"""
         if max(self.small_primes) < max_prime:
             self.sieve(max_prime)
-        remainder = self.cofactor
+        remainder = self.cofactor()
         for factor in self.small_primes:
             while (remainder % factor) == 0:
                 remainder //= factor

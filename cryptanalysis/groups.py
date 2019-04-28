@@ -23,11 +23,10 @@ class GenericGroup:
 
         return self.GroupElement(self, value)
 
-    @property
     def factored_order(self):
         """factors of the group order"""
         if self._factored_order is None:
-            factor = Factor(self.order)
+            factor = Factor(self.order())
             factor.run()
             self._factored_order = factor.factors
 
@@ -48,14 +47,14 @@ class GenericGroup:
     def baby_step_giant_step(self, h, base, baby_steps=None):
         """baby-step, giant-step discrete logarithm algorithm"""
         if baby_steps == None:
-            baby_steps = isqrt(base.order) + 1
-        giant_steps = ceildiv(base.order, baby_steps)
+            baby_steps = isqrt(base.order()) + 1
+        giant_steps = ceildiv(base.order(), baby_steps)
 
         # construct lookup table T with baby steps
         # T contains { h, h g^-1, ..., h g^-(baby_steps-1) }
         T = {}
         k = self(h)
-        inverse_base = base.inverse
+        inverse_base = base.inverse()
         for i in range(baby_steps):
             T[k] = i
             k = k.operator(inverse_base)
@@ -83,11 +82,10 @@ class GenericGroup:
             self.group = group
             self._factored_order = None
 
-        @property
         def factored_order(self):
             """factored order of the group element"""
             if self._factored_order is None:
-                factor = Factor(self.order)
+                factor = Factor(self.order())
                 factor.run()
                 self._factored_order = factor.factors
 
@@ -97,8 +95,7 @@ class GenericGroup:
             """operator imposed by the group"""
             raise NotImplemented()
 
-        @property
-        def inverse(self, other):
+        def inverse(self):
             """inverse of a group element"""
             raise NotImplemented()
 
@@ -139,23 +136,20 @@ class MultiplicativeGroup(GenericGroup):
 
         return self.n == other.n
 
-    @property
     def exponent(self):
         """least common multiple of the orders of all group elements"""
         if self._exponent is None:
-            self._exponent = self.factor.carmichael
+            self._exponent = self.factor.carmichael()
 
         return self._exponent
 
-    @property
     def order(self):
         """number of elements in the group"""
         if self._order is None:
-            self._order = self.factor.phi
+            self._order = self.factor.phi()
 
         return self._order
 
-    @property
     def divisors(self):
         """all possible orders of the subgroups"""
         if self._divisors is None:
@@ -172,9 +166,9 @@ class MultiplicativeGroup(GenericGroup):
     def generator(self, order=None):
         """deterministic generator of specific order"""
         if order is None:
-            order = self.exponent
+            order = self.exponent()
 
-        if math.gcd(order, self.exponent) != order:
+        if math.gcd(order, self.exponent()) != order:
             raise ValueError('no generator of order {} exists'.format(order))
 
         factor = Factor(order)
@@ -187,7 +181,7 @@ class MultiplicativeGroup(GenericGroup):
                 g *= gp
                 continue
 
-            e = self.exponent // (p**k)
+            e = self.exponent() // (p**k)
             for h in range(2, self.n-1):
                 if math.gcd(h, self.n) != 1:
                     # element h is not part of the group
@@ -202,11 +196,11 @@ class MultiplicativeGroup(GenericGroup):
     def pohlighellman(self, h, base):
         """Pohlig–Hellman discrete logarithm algorithm"""
         first_iteration = True
-        for p, k in base.factored_order.items():
+        for p, k in base.factored_order().items():
             a0 = 0
-            g0 = base ** (base.order // p)
+            g0 = base ** (base.order() // p)
             for i in range(1, k+1):
-                h0 = (h * (base ** -a0)) ** (base.order // (p**i))
+                h0 = (h * (base ** -a0)) ** (base.order() // (p**i))
                 a = self.baby_step_giant_step(h0, g0)
                 if a == None:
                     return None
@@ -321,7 +315,7 @@ class MultiplicativeGroup(GenericGroup):
                 raise ValueError('need to power with an integer')
 
             if other < 0:
-                base = self.inverse.g
+                base = self.inverse().g
                 exponent = -other
             else:
                 base = self.g
@@ -333,7 +327,6 @@ class MultiplicativeGroup(GenericGroup):
             else:
                 return self.group(pow(base, exponent, self.group.n))
 
-        @property
         def order(self):
             """order of a group element"""
             if self._order is None:
@@ -342,9 +335,9 @@ class MultiplicativeGroup(GenericGroup):
                     self._order = math.inf
                     return self._order
 
-                factors = dict(self.group.factored_order) # deep copy
-                order = self.group.order
-                for p, k in self.group.factored_order.items():
+                factors = dict(self.group.factored_order()) # deep copy
+                order = self.group.order()
+                for p, k in self.group.factored_order().items():
                     for _ in range(k):
                         candidate_order = order // p
                         if self**candidate_order == 1:
@@ -358,14 +351,12 @@ class MultiplicativeGroup(GenericGroup):
 
             return self._order
 
-        @property
         def factored_order(self):
             if self._factored_order is None:
-                self.order
+                self.order()
 
             return self._factored_order
 
-        @property
         def inverse(self):
             """modular inverse"""
             return self.group(modinv(self.g, self.group.n))
@@ -406,7 +397,6 @@ class SchnorrGroup(MultiplicativeGroup):
     def n(self, n):
         self.p = n
 
-    @property
     def generator(self):
         """generator of prime order of the group"""
         if self._generator is None:
@@ -414,10 +404,9 @@ class SchnorrGroup(MultiplicativeGroup):
 
         return self._generator
 
-    @property
     def factored_order(self):
         if self._factored_order is None:
-            factor = Factor(self.order)
+            factor = Factor(self.order())
             factor.add_factor(self.q)
             factor.run()
             self._factored_order = factor.factors
