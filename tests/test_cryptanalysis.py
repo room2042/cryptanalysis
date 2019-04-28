@@ -1,5 +1,5 @@
 import unittest
-from cryptanalysis import isqrt, lcm, modinv, CRT_pow
+from cryptanalysis import isqrt, lcm, modinv, legendre, jacobi, CRT_pow
 
 class SimpleTestCase(unittest.TestCase):
     def product(self, factors):
@@ -32,6 +32,18 @@ class SimpleTestCase(unittest.TestCase):
         with self.assertRaises(ZeroDivisionError):
             modinv(4, 30)
         self.assertEqual(modinv(165877, 56456), 55421)
+
+    def test_legendre(self):
+        self.assertEqual(legendre(15, 17), 1)
+        self.assertEqual(legendre(19, 43), -1)
+        self.assertEqual(legendre(26, 13), 0)
+
+    def test_jacobi(self):
+        self.assertEqual(jacobi(15, 17), 1)
+        self.assertEqual(jacobi(154, 235), -1)
+        self.assertEqual(jacobi(20, 45), 0)
+        with self.assertRaises(ValueError):
+            jacobi(7, 26)
 
     def test_CRT_pow(self):
         factors = {7: 1, 53: 1, 337: 1, 349: 1}
