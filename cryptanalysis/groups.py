@@ -7,16 +7,24 @@ from cryptanalysis.factor import Factor
 
 
 class GenericGroup:
-    """Generic group algorithms"""
+    """Represents a generic group with generic group algorithms"""
+
     def __init__(self):
-        self.identity = None
+        """Initialize a generic group."""
+        self.identity = None  #: identity of the group
         self._factored_order = None
         self._generator = None
         self._exponent = None
         self._order = None
 
     def __call__(self, value):
-        """create an element in the group"""
+        """
+        Create an element in the group.
+
+        :param value: the value of the element to create
+        :returns: an element in the group
+        :rtype: ~GenericGroup.GroupElement
+        """
         if isinstance(value, self.GroupElement):
             # return the value if already an element
             return value
@@ -24,7 +32,7 @@ class GenericGroup:
         return self.GroupElement(self, value)
 
     def factored_order(self):
-        """factors of the group order"""
+        """Return the factors of the group order."""
         if self._factored_order is None:
             factor = Factor(self.order())
             factor.run()
@@ -33,7 +41,25 @@ class GenericGroup:
         return self._factored_order
 
     def exhaustive_search(self, h, base):
-        """exhaustive search discrete logarithm algorithm"""
+        r"""
+        Determine the discrete logarithm using exhaustive search.
+
+        Return :math:`x` such that :math:`\text{base}^x = h`.
+
+        .. note::
+            Determining the discrete logarithm using exhaustive search is very
+            inefficient. A better algorithm :meth:`baby_step_giant_step` exists
+            to get to the same result.
+            Alternatively, the method :meth:`dlog` determines the discrete
+            logarithm using the fastest algorithm available for the group.
+
+        :param h: the value to compute the discrete log on
+        :type h: ~GenericGroup.GroupElement
+        :param base: the basis of the logarithm
+        :type base: ~GenericGroup.GroupElement
+        :returns: the discrete logarithm :math:`\log_\text{base} h`
+        :rtype: int
+        """
         power = 0
         accumulator = self.identity
         while accumulator != base or power < 2:
@@ -45,7 +71,25 @@ class GenericGroup:
         return None
 
     def baby_step_giant_step(self, h, base, baby_steps=None):
-        """baby-step, giant-step discrete logarithm algorithm"""
+        r"""
+        Determine the discrete log using the baby-step, giant-step algorithm.
+
+        Return :math:`x` such that :math:`\text{base}^x = h`.
+
+        .. note::
+            The method :meth:`dlog` determines the discrete logarithm using the
+            fastest algorithm available for the group.
+
+        :param h: the value to compute the discrete log on
+        :type h: ~GenericGroup.GroupElement
+        :param base: the basis of the logarithm
+        :type base: ~GenericGroup.GroupElement
+        :param baby_steps: the size of the baby steps, if ``None`` a reasonable
+                           size is chosen
+        :type baby_steps: int or None
+        :returns: the discrete logarithm :math:`\log_\text{base} h`
+        :rtype: int
+        """
         if baby_steps is None:
             baby_steps = isqrt(base.order()) + 1
         giant_steps = ceildiv(base.order(), baby_steps)
@@ -72,18 +116,51 @@ class GenericGroup:
         return None
 
     def dlog(self, h, base, method=None):
-        """compute the discrete logarithm"""
+        r"""
+        Determine the discrete logarithm.
+
+        Return :math:`x` such that :math:`\text{base}^x = h`.
+
+        :param h: the value to compute the discrete log on
+        :type h: ~GenericGroup.GroupElement
+        :param base: the basis of the logarithm
+        :type base: ~GenericGroup.GroupElement
+        :param method: the algorithm to use, if ``None`` the fastest available
+                       algorithm is used
+        :type method: method or None
+        :returns: the discrete logarithm :math:`\log_\text{base} h`
+        :rtype: int
+        """
         if method is None:
             method = self.baby_step_giant_step
         return method(h, base)
 
     class GroupElement:
-        def __init__(self, group):
+        """
+        Represents a group element within the group.
+
+        Group elements can be created using the :meth:`__call__` method of the
+        group.
+        For example,
+
+        .. code-block:: python3
+
+            G = GenericGroup()
+            g = G(1)
+        """
+
+        def __init__(self, group, value):
+            """Initialize a group element ``value`` in group ``group``."""
             self.group = group
             self._factored_order = None
 
         def factored_order(self):
-            """factored order of the group element"""
+            """
+            Return the factors of the order of the group element.
+
+            :returns: factors of the element's order
+            :rtype: dict()
+            """
             if self._factored_order is None:
                 factor = Factor(self.order())
                 factor.run()
@@ -92,21 +169,55 @@ class GenericGroup:
             return self._factored_order
 
         def operator(self, other):
-            """operator imposed by the group"""
+            """
+            Apply the operator imposed by the group on ``self`` and ``other``.
+            """
             raise NotImplementedError()
 
         def inverse(self):
-            """inverse of a group element"""
+            """Return the inverse of the group element."""
             raise NotImplementedError()
 
         def repeated_operator(self, repeat):
-            """repeatedly apply the group operator on the element"""
+            """Repeatedly apply the group operator on the element."""
             raise NotImplementedError()
 
 
 class MultiplicativeGroup(GenericGroup):
-    """Cyclic group modulo n"""
+    r"""
+    Represent a multiplicative group modulo ``n``.
+
+    The group contains the elements
+
+    .. math::
+        (\mathbb{Z} / n\mathbb{Z})^* =
+            \{ x \in (\mathbb{Z} / n\mathbb{Z}) | \gcd(x, n) = 1 \}.
+
+    This class extends :class:`GenericGroup`.
+
+    Example usage:
+
+    .. code-block:: pycon
+
+        >>> from cryptanalysis.groups import MultiplicativeGroup
+        >>> G = MultiplicativeGroup(10)
+        >>> g = G.generator()
+        >>> g
+        3 (mod 10)
+        >>> g*4
+        2 (mod 10)
+        >>> g**3
+        7 (mod 10)
+    """
+
     def __init__(self, n):
+        """
+        Create a multiplicative group modulo ``n``.
+
+        Extends the :meth:`GenericGroup.__init__` function.
+
+        :param int n: the group modulus
+        """
         super().__init__()
 
         if type(n) is int:
@@ -131,28 +242,43 @@ class MultiplicativeGroup(GenericGroup):
         self._divisors = None
         self.identity = self(1)
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
+    def __eq__(self, value):
+        if not isinstance(value, type(self)):
             return False
 
-        return self.n == other.n
+        return self.n == value.n
 
     def exponent(self):
-        """least common multiple of the orders of all group elements"""
+        """
+        Return the least common multiple of the orders of all group elements.
+
+        :returns: the exponent of the group
+        :rtype: int
+        """
         if self._exponent is None:
             self._exponent = self.factor.carmichael()
 
         return self._exponent
 
     def order(self):
-        """number of elements in the group"""
+        """
+        Return the number of elements in the group.
+
+        :returns: the order of the group
+        :rtype: int
+        """
         if self._order is None:
             self._order = self.factor.phi()
 
         return self._order
 
     def divisors(self):
-        """all possible orders of the subgroups"""
+        """
+        Return all possible orders of the subgroups.
+
+        :returns: a list of possible orders
+        :rtype: list(int)
+        """
         if self._divisors is None:
             divisors = {1}
             factor = Factor(self.exponent())
@@ -165,7 +291,16 @@ class MultiplicativeGroup(GenericGroup):
         return self._divisors
 
     def generator(self, order=None):
-        """deterministic generator of specific order"""
+        """
+        Return a deterministic generator of specific order.
+
+        :param order: the required order of the generator, if ``None`` the
+                      order equals the exponent of the group
+        :type order: int or None
+        :returns: a group element
+        :rtype: ~MultiplicativeGroup.GroupElement
+        :raises ValueError: if no generator of the order exists
+        """
         if order is None:
             order = self.exponent()
 
@@ -195,7 +330,22 @@ class MultiplicativeGroup(GenericGroup):
         return g
 
     def pohlighellman(self, h, base):
-        """Pohlig–Hellman discrete logarithm algorithm"""
+        r"""
+        Determine the discrete log using the Pohlig--Hellman algorithm.
+
+        Return :math:`x` such that :math:`\text{base}^x = h`.
+
+        .. note::
+            The method :meth:`dlog` determines the discrete logarithm using the
+            fastest algorithm available for the group.
+
+        :param h: the value to compute the discrete log on
+        :type h: ~MultiplicativeGroup.GroupElement
+        :param base: the basis of the logarithm
+        :type base: ~MultiplicativeGroup.GroupElement
+        :returns: the discrete logarithm :math:`\log_\text{base} h`
+        :rtype: int
+        """
         first_iteration = True
         for p, k in base.factored_order().items():
             a0 = 0
@@ -220,14 +370,13 @@ class MultiplicativeGroup(GenericGroup):
         return A
 
     def dlog(self, h, base, method=None):
-        """compute the discrete logarithm"""
         if method is None:
             method = self.pohlighellman
         return method(h, base)
 
     class GroupElement(GenericGroup.GroupElement):
         def __init__(self, group, value):
-            super().__init__(group)
+            super().__init__(group, value)
 
             self.g = value % self.group.n
             self._order = None
@@ -331,7 +480,12 @@ class MultiplicativeGroup(GenericGroup):
                 return self.group(pow(base, exponent, self.group.n))
 
         def order(self):
-            """order of a group element"""
+            """
+            Return the order of a group element.
+
+            :returns: the element's order
+            :rtype: int
+            """
             if self._order is None:
                 if math.gcd(self.g, self.group.n) != 1:
                     self._factored_order = math.inf
@@ -361,23 +515,33 @@ class MultiplicativeGroup(GenericGroup):
             return self._factored_order
 
         def inverse(self):
-            """modular inverse"""
             return self.group(modinv(self.g, self.group.n))
 
         def operator(self, other):
-            """apply the group operator"""
+            """Returns ``self * other``."""
             return self * other
 
         def repeated_operator(self, repeat):
-            """repeatedly apply the group operator on the element"""
+            """Returns ``self ** repeat``."""
             if type(repeat) is not int:
                 raise ValueError('need to repeat with integer value')
             return self ** repeat
 
 
 class RSAGroup(MultiplicativeGroup):
-    """Module for cryptanalytic attacks on the RSA cryptosystem"""
+    """
+    Represent an RSA group, i.e., a multiplicative group modulo ``n = p * q``.
+    """
+
     def __init__(self, n, e=65537):
+        """
+        Create a RSA group modulo with ``n`` and public exponent ``e``.
+
+        Extends the :meth:`MultiplicativeGroup.__init__` function.
+
+        :param int n: the group modulus
+        :param int e: the public exponent
+        """
         super().__init__(n)
         self._p = None
         self._q = None
@@ -386,7 +550,7 @@ class RSAGroup(MultiplicativeGroup):
 
     @property
     def p(self):
-        """the larger prime of the two"""
+        """The larger prime of the two prime factors."""
         if self.factor.isfactored():
             self._q, self._p = sorted(self.factor.factors)
         return self._p
@@ -400,7 +564,7 @@ class RSAGroup(MultiplicativeGroup):
 
     @property
     def q(self):
-        """the smaller prime of the two"""
+        """The smaller prime of the two prime factors."""
         if self.factor.isfactored():
             self._q, self._p = sorted(self.factor.factors)
         return self._q
@@ -410,13 +574,17 @@ class RSAGroup(MultiplicativeGroup):
         self.p = q
 
     def phi(self, phi=None):
-        """Get or set the order of the group
+        """
+        Get or set the order of the group.
 
         If ``phi`` is not ``None``, factor ``n`` using the order of the group.
-        This algorithm to factor ``n`` is described in [RSA78].
-        “A method for obtaining digital signatures and public-key
-        cryptosystems”
-        DOI: 10.1145/359340.359342"""
+        This algorithm to factor ``n`` is described in [RSA78]_.
+
+        :param phi: if not ``None``, set the order of the group as ``phi``
+        :type phi: int or None
+        :returns: the order of the group
+        :rtype: int
+        """
         if phi is None:
             return self.order()
 
@@ -435,6 +603,14 @@ class RSAGroup(MultiplicativeGroup):
 
     @property
     def d(self):
+        """
+        Get or set the private key component ``d``.
+
+        When setting value ``d``, automatically factor ``n`` using the public
+        exponent ``e`` and recover the complete private key.
+        More information about this factorization algorithm can be found in
+        [Bon99]_.
+        """
         if self._d is not None:
             return self._d
 
@@ -445,13 +621,6 @@ class RSAGroup(MultiplicativeGroup):
 
     @d.setter
     def d(self, d):
-        """factor n using known e and d
-
-        From [Bon99] “Twenty Years of Attacks on the RSA Cryptosystem”
-        URL: https://www.ams.org/journals/notices/199902/boneh.pdf
-
-        From [Mil76] “Riemann's Hypothesis and Tests for Primality”
-        DOI: 10.1145/800116.803773"""
         self._d = d
 
         # factor n using (e, d)
@@ -472,8 +641,22 @@ class RSAGroup(MultiplicativeGroup):
         self.factor.add_factor(y)
         self.factor.add_factor(self.n // y)
 
-    def private_key(self, encoding=None, format=None,
-                    encryption_algorithm=None):
+    def private_key(self, encoding=None, format=None):
+        """
+        Return the encoded private key of the RSAGroup object.
+
+        Relies on `pyca/cryptography <https://cryptography.io/>`_ for this
+        functionality.
+
+        :param encoding: encoding to use, if ``None`` use PEM encoding
+        :type encoding: cryptography.hazmat.primitives.serialization.Encoding
+                        or None
+        :param format: private key format to use, if ``None`` use PKCS8
+        :type format: cryptography.hazmat.primitives.serialization.\
+                      PrivateFormat.PKCS8 or None
+        :returns: the encoded private key
+        :rtype: bytes
+        """
         from cryptography.hazmat.backends import default_backend
         from cryptography.hazmat.primitives import serialization
         from cryptography.hazmat.primitives.asymmetric.rsa import \
@@ -484,8 +667,8 @@ class RSAGroup(MultiplicativeGroup):
             encoding = serialization.Encoding.PEM
         if format is None:
             format = serialization.PrivateFormat.PKCS8
-        if encryption_algorithm is None:
-            encryption_algorithm = serialization.NoEncryption()
+
+        encryption_algorithm = serialization.NoEncryption()
 
         dmp1 = rsa_crt_dmp1(self.d, self.p)
         dmq1 = rsa_crt_dmq1(self.d, self.q)
@@ -498,28 +681,37 @@ class RSAGroup(MultiplicativeGroup):
         return sk.private_bytes(encoding, format, encryption_algorithm)
 
     def wiener(self):
-        """
-        Wiener's attack of when a small ``d`` is used
+        r"""
+        Run Wiener's attack [Wie90]_.
 
-        This attack might work for ::
+        Wiener's attack works in case a small ``d`` is used.
+        The attack is guaranteed to work for
 
-            d < n**(1/4 + \epsilon)
+        .. math:: d \lesssim \frac{1}{2} n^{1/4},
 
-        but is only guaranteed to work for ::
+        but *might* still work for
 
-            d \lesssim (1/2) n**(1/4)
+        .. math:: d < n^{1/4 + \epsilon}.
 
-        Remark: A better attack exists by Boneh and Durfee.
 
-        For more information about the algorithms, see [WTY19].
-        DOI: 10.1007/978-3-030-21548-4_21
+        .. note::
+            A better attack exists by Boneh and Durfee [BD99]_. (Not
+            implemented.)
+
+        For more information about the algorithm and bounds, see [STY19]_.
+
+        :returns: whether the attack was successful or not
+        :rtype: bool
         """
         def convergent(fractions, j):
-            """compute the `j`th convergent of a continued fraction
+            """
+            Compute the ``j``th convergent of a continued fraction.
 
-            Using the Euler-Wallis Theorem
+            Using the Euler-Wallis Theorem.
 
-            :return (a, b) where the convergent is a / b"""
+            :returns: ``(a, b)`` where the convergent is ``a / b``
+            :rtype: tuple(int, int)
+            """
             a2, a1, b2, b1 = 0, 1, 1, 0
             for f in fractions[:j]:
                 a1, a2 = f*a1 + a2, a1
@@ -551,17 +743,32 @@ class RSAGroup(MultiplicativeGroup):
 
 
 class SchnorrGroup(MultiplicativeGroup):
-    """Finite Field Cryptography (FFC) Schnorr group
+    """
+    Finite Field Cryptography (FFC) Schnorr group
 
-    A Schnorr group is a subgroup of prime order q inside a
-    multipicative group of the form p = kq + 1.
+    A Schnorr group is a subgroup of prime order ``q`` inside a
+    multiplicative group of the form ``p = kq + 1``.
     See https://en.wikipedia.org/wiki/Schnorr_group for more
     information.
 
     To generate such a group, first call the method
-    `G.generate_primes()` on the object `G`. To use a generator of order
-    `G.q` use `G.generator`."""
+    ``G.generate_primes()`` on the object ``G``.
+    To use a generator of order ``G.q`` use ``G.generator()``.
+    """
+
     def __init__(self, p=None, q=None):
+        """
+        Create a Schnorr group.
+
+        Extends the :meth:`MultiplicativeGroup.__init__` function.
+
+        :param p: the group modulus, can be ``None`` to generate the parameters
+                  later
+        :type p: int or None
+        :param q: the prime modulus of the subgroup, can be ``None`` to
+                  generate the parameters later
+        :type q: int or None
+        """
         self.p = p
         self.q = q
 
@@ -577,7 +784,12 @@ class SchnorrGroup(MultiplicativeGroup):
         self.p = n
 
     def generator(self):
-        """generator of prime order of the group"""
+        """
+        Return a generator of prime order ``q`` that generates the group.
+
+        :returns: a generator of the group
+        :rtype: ~SchnorrGroup.GroupElement
+        """
         if self._generator is None:
             self._generator = super().generator(self.q)
 
@@ -593,10 +805,12 @@ class SchnorrGroup(MultiplicativeGroup):
         return self._factored_order
 
     def generate_primes(self, L=2048, N=256):
-        """Generation of the probable primes p and q.
+        """
+        Generate probable primes ``p`` and ``q``.
 
-        L - desired bit length of the prime p
-        N - desired bit length of the prime q"""
+        :param int L: the bit length of the prime ``p``
+        :param int N: the bit length of the prime ``q``
+        """
         if not 1 < N < L:
             raise ValueError('incorrect bit lengths, 1 < N < L needed')
 
@@ -620,18 +834,22 @@ class SchnorrGroup(MultiplicativeGroup):
                     return (p, q)
 
     def hash(self, m, H='sha256'):
-        """cryptographically hash a message to the group
+        """
+        Cryptographically hash a message to a group element.
 
-        m - input bytes to hash
-        H - hash function to use, as specified by hmac.digest()
+        For more information, see:
+        https://crypto.stackexchange.com/questions/39877#39879
 
-        See: https://crypto.stackexchange.com/questions/39877#39879"""
+        :param bytes m: the input to hash
+        :param str H: hash function to use, as specified by
+                      :funct:`hmac.digest`
+        """
         digest_size = hmac.new(b'', b'', H).digest_size
         length = ceildiv(self.p.bit_length(), digest_size * 8) + 1
         if length > digest_size * 8:
             raise ValueError('hash function domain too small')
 
-        # build concatination of hashes
+        # build concatenation of hashes
         h = b''
         for i in range(length):
             key = i.to_bytes(digest_size, byteorder='big')
@@ -647,15 +865,16 @@ class SchnorrGroup(MultiplicativeGroup):
         return h ** k
 
     def sqrt(self, h):
-        """Compute a square root modulo p
+        """
+        Return a square root modulo ``p``.
 
-        Returns a square root of ``h``. The other square root can be
-        found as ``-h``.
+        Computes a square root of ``h``.
+        The other square root can be found as ``-h``.
 
         :param h: a square group element
-        :type h: GroupElement
-        :returns: a solution to the equation h = x**2
-        :rtype: GroupElement"""
+        :type h: ~SchnorrGroup.GroupElement
+        :returns: a solution to the equation ``h = x**2``
+        :rtype: ~SchnorrGroup.GroupElement"""
         if self.p % 4 == 3:
             return h**((self.p + 1) // 4)
         else:

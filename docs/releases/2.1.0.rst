@@ -1,0 +1,14 @@
+2.1.0 Release Notes
+===================
+
+September XX, 2019
+
+This is the first public release of ``cryptanalysis``.
+
+New Features
+------------
+
+The initial public release of ``cryptanalysis`` come with several
+features, including
+
+* RSA related attacks, most notably Wiener's attack.
