@@ -1,8 +1,9 @@
 import hmac
 import math
 import os
+import random
 
-from cryptanalysis import ceildiv, isqrt, modinv, CRT, CRT_pow
+from cryptanalysis import ceildiv, isqrt, modinv, legendre, CRT, CRT_pow
 from cryptanalysis.factor import Factor
 
 class GenericGroup:
@@ -476,3 +477,42 @@ class SchnorrGroup(MultiplicativeGroup):
         # map to an element in Z^*_q
         k = (self.p - 1) // self.q
         return h ** k
+
+    def sqrt(self, h):
+        """Compute a square root modulo p
+
+        Returns a square root of ``h``. The other square root can be
+        found as ``-h``.
+
+        :param h: a square group element
+        :type h: GroupElement
+        :returns: a solution to the equation h = x**2
+        :rtype: GroupElement"""
+        if self.p % 4 == 3:
+            return h**((self.p + 1) // 4)
+        else:
+            # Shanks' Algorithm
+            n = 2
+            while legendre(n, self.p) != -1:
+                n = random.randrange(2, self.p)
+
+            # write (p - 1) == 2**r * q
+            r, q = 0, self.p - 1
+            while q & 0x1 == 0:
+                q >>= 1
+                r += 1
+
+            y = self(n)**q
+            x = h**((q-1) // 2)
+            b = h * x**2
+            x *= h
+
+            # find the smallest m such that b**(2**m) = 1
+            while b != 1:
+                t = y**(2**(r - m - 1))
+                y = t**2
+                r = m
+                x *= t
+                b *= y
+
+            return x
