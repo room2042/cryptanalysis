@@ -23,6 +23,8 @@ With ``cryptanalysis`` you can easily
   * Mersenne Twister (``mt19937``, ``mt19937-64``, and ``mt11213b``)
   * Middle Square Weyl Sequence
 
+* plaintext and ciphertext :doc:`analysis <ref/analysis>`
+
 Quick Start
 -----------
 

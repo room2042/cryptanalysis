@@ -1,6 +1,10 @@
 References
 ==========
 
+.. [And89] Anderson. :title:`Recognizing complete and partial plaintext`
+   (1989).
+   :doi:`10.1080/0161-118991863871`
+
 .. [Bon99] Boneh. :title:`Twenty Years of Attacks on the RSA
    Cryptosystem` (1999).
    URL: https://www.ams.org/journals/notices/199902/boneh.pdf
@@ -13,12 +17,20 @@ References
    (1980).
    :doi:`10.1007/BF01933190`
 
+.. [Fri25] Friedman. :title:`The index of coincidence and its applications in
+   cryptanalysis` (1925).
+   Technical Paper, War Department.
+
 .. [Pol75] Pollard. :title:`A monte carlo method for factorization` (1975).
    :doi:`10.1007/BF01933667`
 
 .. [RSA78] Rivest, Shamir, and Adleman. :title:`A method for obtaining
    digital signatures and public-key cryptosystems` (1978).
    :doi:`10.1145/359340.359342`
+
+.. [Sin66] Sinkov. :title:`Elementary Cryptanalysis: A Mathematical
+   Approach` (1966).
+   The Mathematical Association of America.
 
 .. [STY19] Susilo, Tonien, and Yang. :title:`The Wiener Attack on RSA
    Revisited: A Quest for the Exact Bound` (2019).
