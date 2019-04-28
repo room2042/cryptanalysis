@@ -9,6 +9,12 @@ try:
 
     def modinv(a, mod):
         return int(gmpy2.invert(a, mod))
+
+    def legendre(x, y):
+        return int(gmpy2.legendre(x, y))
+
+    def jacobi(x, y):
+        return int(gmpy2.jacobi(x, y))
 except ImportError:
     import math
 
@@ -39,6 +45,57 @@ except ImportError:
             raise ZeroDivisionError('modular inverse does not exist')
 
         return x % mod
+
+    def legendre(x, y):
+        """Compute the Legendre symbol (x | y)
+
+        The Legendre symbol indicates whether the value ``x`` is a
+        quadratic residue (``+1``) or a quadratic non-residue (``-1``).
+        The Legendre symbol is defined to be ``0`` if ``y`` divides
+        ``x``.
+
+        :param int x: the numerator
+        :param int y: the denominator, *assumed* to be an odd prime
+        :return: the Legendre symbol (x | y)
+        :rtype: int"""
+        return jacobi(x, y)
+
+    def jacobi(x, y):
+        """Compute the Jacobi symbol (x | y)
+
+        The Jacobi symbol is an extension of the Legendre symbol.
+        It indicates whether the value ``x`` is a pseudo-squares
+        (``+1``) or guaranteed to be not a square (``-1``). The Jacobi
+        symbol is defined to be ``0`` if ``x`` and ``y`` are coprime.
+
+        :param int x: the numerator
+        :param int y: the denominator, required to be an odd integer ``y >= 3``
+        :return: the Jacobi symbol (x | y)
+        :rtype: int
+        :raises ValueError: if the Jacobi symbol is undefined"""
+        if y <= 0 or y % 2 == 0:
+            raise ValueError('y needs to be odd and y >= 3')
+
+        j = 1
+        if x < 0:
+            x = -x
+            if y % 4 == 3:
+                j = -j
+
+        while x != 0:
+            while x % 2 == 0:
+                x //= 2
+                if y % 8 == 3 or y % 8 == 5:
+                    j = -j
+            x, y = y, x
+            if x % 4 == 3 and y % 4 == 3:
+                j = -j
+            x %= y
+
+        if y == 1:
+            return j
+
+        return 0
 
 def ceildiv(a, b):
     """ceil division of a divides by b"""
