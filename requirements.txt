@@ -1,0 +1,4 @@
+pyyaml  # required for cryptanalysis.analysis.Language
+# [optional requirements]
+#cryptography  # required for cryptanalysis.groups.RSA.private_key()
+#gmpy2  # for computational speedup using groups

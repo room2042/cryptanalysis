@@ -5,6 +5,7 @@ Documentation Contents
    :maxdepth: 2
 
    index
+   cookbook/index
    ref/index
    releases/index
    bibliography
