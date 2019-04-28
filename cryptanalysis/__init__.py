@@ -101,7 +101,7 @@ def ceildiv(a, b):
     """ceil division of a divides by b"""
     return int(-(-a // b))
 
-def CRT(a_list, n_list):
+def crt(a_list, n_list):
     """compute x mod prod(n_i) from the congruences x = a_i (mod n_i)"""
     x = 0
     n = 1
@@ -115,7 +115,7 @@ def CRT(a_list, n_list):
 
     return x % n
 
-def CRT_pow(x, y, factors):
+def crt_pow(x, y, factors):
     """compute pow(x, y, prod(factors)) using the Chinese remainder theorem"""
     a_list = []
     n_list = []
@@ -128,4 +128,4 @@ def CRT_pow(x, y, factors):
         a_list.append(pow(x, yi, ni))
         n_list.append(ni)
 
-    return CRT(a_list, n_list)
+    return crt(a_list, n_list)

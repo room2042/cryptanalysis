@@ -1,5 +1,5 @@
 import unittest
-from cryptanalysis import isqrt, lcm, modinv, legendre, jacobi, CRT_pow
+from cryptanalysis import isqrt, lcm, modinv, legendre, jacobi, crt_pow
 
 class SimpleTestCase(unittest.TestCase):
     def product(self, factors):
@@ -45,26 +45,26 @@ class SimpleTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             jacobi(7, 26)
 
-    def test_CRT_pow(self):
+    def test_crt_pow(self):
         factors = {7: 1, 53: 1, 337: 1, 349: 1}
         x, y, n = 6, 154, self.product(factors)
-        self.assertEqual(pow(x, y, n), CRT_pow(x, y, factors))
+        self.assertEqual(pow(x, y, n), crt_pow(x, y, factors))
 
         factors = {3: 1, 31: 1, 35189051: 1}
         x, y, n = 10, 234, self.product(factors)
-        self.assertEqual(pow(x, y, n), CRT_pow(x, y, factors))
+        self.assertEqual(pow(x, y, n), crt_pow(x, y, factors))
 
         factors = {3: 2, 31: 1, 35189051: 1}
         x, y, n = 10, 234, self.product(factors)
-        self.assertEqual(pow(x, y, n), CRT_pow(x, y, factors))
+        self.assertEqual(pow(x, y, n), crt_pow(x, y, factors))
 
         factors = {3: 4, 31: 2, 35189051: 3}
         x, y, n = 10, 234, self.product(factors)
-        self.assertEqual(pow(x, y, n), CRT_pow(x, y, factors))
+        self.assertEqual(pow(x, y, n), crt_pow(x, y, factors))
 
         factors = {2: 2, 19: 2, 35189051: 3}
         x, y, n = 10, 234, self.product(factors)
-        self.assertEqual(pow(x, y, n), CRT_pow(x, y, factors))
+        self.assertEqual(pow(x, y, n), crt_pow(x, y, factors))
 
 if __name__ == '__main__':
     unittest.main()
