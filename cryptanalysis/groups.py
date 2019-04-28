@@ -3,7 +3,7 @@ import math
 import os
 import random
 
-from cryptanalysis import ceildiv, isqrt, modinv, legendre, CRT, CRT_pow
+from cryptanalysis import ceildiv, isqrt, modinv, legendre, crt, crt_pow
 from cryptanalysis.factor import Factor
 
 class GenericGroup:
@@ -213,7 +213,7 @@ class MultiplicativeGroup(GenericGroup):
             else:
                 a_list = [A, a0]
                 n_list = [M, p**k]
-                A = CRT(a_list, n_list)
+                A = crt(a_list, n_list)
                 M *= p**k
 
         return A
@@ -323,7 +323,7 @@ class MultiplicativeGroup(GenericGroup):
 
             if self.group.n.bit_length() > 512 and self.group.factor.isfactored():
                 # optimized computation using the factors of a large group order
-                return self.group(CRT_pow(base, exponent, self.group.factor.factors))
+                return self.group(crt_pow(base, exponent, self.group.factor.factors))
             else:
                 return self.group(pow(base, exponent, self.group.n))
 
