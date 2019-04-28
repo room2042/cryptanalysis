@@ -11,10 +11,10 @@ try:
         return int(gmpy2.invert(a, mod))
 
     def legendre(x, y):
-        return int(gmpy2.legendre(x, y))
+        return gmpy2.legendre(x, y)
 
     def jacobi(x, y):
-        return int(gmpy2.jacobi(x, y))
+        return gmpy2.jacobi(x, y)
 except ImportError:
     import math
 
