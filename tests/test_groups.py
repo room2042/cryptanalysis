@@ -23,20 +23,20 @@ class GroupOperationsTestCase(unittest.TestCase):
         self.assertNotEqual(self.G1, self.G3)
 
     def test_group_exponent(self):
-        self.assertEqual(self.G.exponent, 22)
-        self.assertEqual(self.G3.exponent, 10)
-        self.assertEqual(self.G4.exponent, 150)
+        self.assertEqual(self.G.exponent(), 22)
+        self.assertEqual(self.G3.exponent(), 10)
+        self.assertEqual(self.G4.exponent(), 150)
 
     def test_group_order(self):
-        self.assertEqual(self.G.order, 22)
-        self.assertEqual(self.G3.order, 10)
-        self.assertEqual(self.G4.order, 150)
+        self.assertEqual(self.G.order(), 22)
+        self.assertEqual(self.G3.order(), 10)
+        self.assertEqual(self.G4.order(), 150)
 
     def test_group_generator(self):
         g = self.G.generator(22)
-        self.assertEqual(g.order, 22)
+        self.assertEqual(g.order(), 22)
         g = self.G5.generator(8100)
-        self.assertEqual(g.order, 8100)
+        self.assertEqual(g.order(), 8100)
 
     def test_element_eq(self):
         self.assertEqual(self.g, self.g)
@@ -101,13 +101,13 @@ class GroupOperationsTestCase(unittest.TestCase):
             self.g1 ** self.g2
 
     def test_element_order(self):
-        self.assertEqual(self.g.order, 22)
-        self.assertEqual(self.g1.order, 11)
-        self.assertEqual(self.g2.order, 22)
-        self.assertEqual(self.g3.order, 5)
-        self.assertEqual(self.G4(2).order, 15)
-        self.assertEqual(self.G4(3).order, 50)
-        self.assertEqual(self.G4(5).order, 75)
+        self.assertEqual(self.g.order(), 22)
+        self.assertEqual(self.g1.order(), 11)
+        self.assertEqual(self.g2.order(), 22)
+        self.assertEqual(self.g3.order(), 5)
+        self.assertEqual(self.G4(2).order(), 15)
+        self.assertEqual(self.G4(3).order(), 50)
+        self.assertEqual(self.G4(5).order(), 75)
 
     def test_element_exhaustive_search(self):
         self.assertEqual(self.G.exhaustive_search(1, self.g), 0)
@@ -138,21 +138,21 @@ class CompositeGroupTestCase(unittest.TestCase):
         self.g2 = self.G2(5)
 
     def test_group_exponent(self):
-        self.assertEqual(self.G1.exponent, 110)
-        self.assertEqual(self.G2.exponent, 58190)
-        self.assertEqual(self.G3.exponent, 60)
+        self.assertEqual(self.G1.exponent(), 110)
+        self.assertEqual(self.G2.exponent(), 58190)
+        self.assertEqual(self.G3.exponent(), 60)
 
     def test_group_order(self):
-        self.assertEqual(self.G1.order, 220)
-        self.assertEqual(self.G2.order, 1280180)
+        self.assertEqual(self.G1.order(), 220)
+        self.assertEqual(self.G2.order(), 1280180)
 
     def test_group_generator(self):
         g = self.G1.generator(110)
-        self.assertEqual(g.order, 110)
+        self.assertEqual(g.order(), 110)
         g = self.G2.generator(58190)
-        self.assertEqual(g.order, 58190)
+        self.assertEqual(g.order(), 58190)
         g = self.G4.generator(2**6)
-        self.assertEqual(g.order, 2**6)
+        self.assertEqual(g.order(), 2**6)
         with self.assertRaises(ValueError):
             self.G1.generator(3)
         with self.assertRaises(ValueError):
@@ -167,11 +167,11 @@ class CompositeGroupTestCase(unittest.TestCase):
             self.g1 / 11
 
     def test_element_order(self):
-        self.assertEqual(self.G1(2).order, 110)
-        self.assertEqual(self.G1(11).order, math.inf)
-        self.assertEqual(self.G2(2).order, 58190)
-        self.assertEqual(self.G2(125).order, 58190)
-        self.assertEqual(self.G2(1253200).order, 10)
+        self.assertEqual(self.G1(2).order(), 110)
+        self.assertEqual(self.G1(11).order(), math.inf)
+        self.assertEqual(self.G2(2).order(), 58190)
+        self.assertEqual(self.G2(125).order(), 58190)
+        self.assertEqual(self.G2(1253200).order(), 10)
 
     def test_element_dlog(self):
         self.assertEqual(self.G1.dlog(89, self.g1), 5)
@@ -185,7 +185,7 @@ class SchnorrGroupTestCase(unittest.TestCase):
         p = 91963351287114509810976103701583676604219034744988050402811969296353490883155020381014035655928792644506981621199078746939173961001551882502698720098128716509792416686791624573908434518769759371967445834633509375433924324143955705197779381523827817772395764887436528163855894063455209430781092753045723959471
         q = 170585623065927333025452925743256993957
         self.G = SchnorrGroup(p, q)
-        self.g = self.G.generator
+        self.g = self.G.generator()
 
     def test_group_generator(self):
         self.assertEqual(self.g ** self.G.q, 1)
@@ -203,7 +203,7 @@ class SchnorrGroupTestCase(unittest.TestCase):
         p = 119007264594570647584938135667609459155973326816001138517488922973781436043928518486840456851455043075567598272697863022720892363821879196538279077722622854558151346492445648226832991583597453819617192707985612203288340885077450685661828612714352223669883172921017233596355384207628730470526285624279538954409
         q = 310881042874170916758319558682861459317
         G = SchnorrGroup(p, q)
-        g = G.generator
+        g = G.generator()
         base = g**43
         h = base**2
         sqrt = G.sqrt(h)
