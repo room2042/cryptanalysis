@@ -39,8 +39,7 @@ class MersenneTwisterTestCase(unittest.TestCase):
 
     def test_cpp_uninitialize(self):
         self.mt.cpp_initialize()
-        self.mt.cpp_uninitialize()
-        seed = self.mt.state[0]
+        seed = self.mt.cpp_uninitialize()
         self.assertEqual(5489, seed)
 
     def test_untamper(self):

@@ -4,11 +4,23 @@ from cryptanalysis import modinv
 
 
 class MersenneTwister:
-    """Mersenne Twister module
+    """
+    Mersenne Twister implementation.
 
-    See https://en.wikipedia.org/wiki/Mersenne_Twister for more details."""
-    def __init__(self, variant='mt19937', seed=None):
-        self.variant = variant
+    See https://en.wikipedia.org/wiki/Mersenne_Twister for more details.
+    """
+    def __init__(self, variant='mt19937'):
+        """
+        Initialize a Mersenne Twister object.
+
+        Severial variants of the :abbr:`MT (Mersenne Twister)` exists.
+        Python 3 uses the ``mt19937`` variant.
+
+        :param str variant: the MT variant, ``mt19937``, ``mt19937-64``, or
+                            ``mt11213b``
+        :raises ValueError: if ``variant`` is unknown
+        """
+        self._variant = variant
 
         if variant == 'mt19937':
             self.w = 32
@@ -65,27 +77,51 @@ class MersenneTwister:
         self._upper_mask = ((1 << (self.w - self.r)) - 1) << self.r
         self._lower_mask = (1 << self.r) - 1
 
-        self.urand_initialize()
-
     def _unshift(self, value, operator, shift, mask):
-        """helper function to revert states"""
+        """Helper function to revert the states."""
         y = value
         for i in range(self.w, 0, -shift):
             y = value ^ (operator(y, shift) & mask)
         return y
 
     def get_state(self):
+        """
+        Return the state of the Mersenne Twister.
+
+        :return: the state of the Mersenne Twister
+        :rtype: list(int)
+        """
         return self.state
 
     def set_state(self, state):
+        """
+        Set the state of the Mersenne Twister.
+
+        :param list(int) state: the state
+        """
         assert len(state) == self.n
         self.state = state
 
     def get_python_state(self):
-        """The Python internal state can be set using::
-            random.setstate(mt.get_python_state())
         """
-        if self.variant != 'mt19937':
+        Return the Mersenne Twister state compatible with Python.
+
+        This method returns the Mersenne Twister state, compatible with
+        Python's method :meth:`random.getstate`.
+        The internal state can be set :meth:`random.setstate`.
+
+        .. code-block:: python3
+
+            mt = MersenneTwister('mt19937')
+            mt.urand_initialize()
+            random.setstate(mt.get_python_state())
+
+        :return: the MT state compatible for usage with Python's
+                 :class:`random`
+        :rtype: tuple(int, list(int), None)
+        :raises ValueError: if the MT variant is incompatible with Python
+        """
+        if self._variant != 'mt19937':
             raise ValueError('Python only supports the mt19937 variant')
 
         version = 3
@@ -95,10 +131,25 @@ class MersenneTwister:
         return (version, internalstate, gauss_next)
 
     def set_python_state(self, python_state):
-        """The Python internal state can be retrieved using::
+        """
+        Set the internal state from a Python state.
+
+        This is a convenience method to set the MT state from a Python state
+        obtained by :meth:`random.getstate`.
+
+        .. code-block: python3
+
+            mt = MersenneTwister('mt19937')
             mt.set_python_state(random.getstate())
+
+        :param python_state: a Python random state obtained as
+                             :meth:`random.getstate`
+        :raises ValueError: if the state version is not recognized
         """
         version, internalstate, gauss_next = python_state
+        if version != 3:
+            raise ValueError('unknown Python random version')
+
         elements, index = list(internalstate[:-1]), internalstate[-1]
         self.set_state(elements)
         for _ in range(self.n - index):
@@ -107,19 +158,26 @@ class MersenneTwister:
             self.revert_state()
 
     def urand_initialize(self):
+        """Initialize the MT state using :meth:`os.urand`."""
         self.state = []
         for i in range(self.n):
             self.state.append(int.from_bytes(os.urandom(self.w // 8),
                                              byteorder='big'))
 
-    def python_initialize(self, seed):
-        """:raises NotImplementedError: always
-        """
-        raise NotImplementedError()
-
     def python_uninitialize(self):
-        if self.w != 32:
-            raise ValueError('Python only uses the 32-bit Mersenne Twister')
+        """
+        Return the Python seed that generates the current MT state.
+
+        This function return the Python seed of the state was initialized using
+        an integer.
+        If the MT was seeded using a string, bytes, or a bytearray, use
+        :meth:`python_uninitialize_bytes`.
+
+        :return: the Python seed
+        :rtype: bytes
+        """
+        if self._variant != 'mt19937':
+            raise ValueError('Python only uses the mt19937 Mersenne Twister')
 
         # at most self.n - 1, otherwise we cannot recover the entire key
         MAX_KEY_LENGTH = self.n - 1
@@ -207,6 +265,16 @@ class MersenneTwister:
         assert False
 
     def python_uninitialize_bytes(self):
+        """
+        Return the Python seed that generates the current MT state.
+
+        This function return the Python seed of the state was initialized using
+        a string, bytes, or a bytearray.
+        If the MT was seeded using an integer use :meth:`python_uninitialize`.
+
+        :return: the Python seed
+        :rtype: bytes
+        """
         seed = b''.join(self.python_uninitialize())
 
         # remove sha512 hash from end of seed
@@ -216,9 +284,14 @@ class MersenneTwister:
         return seed
 
     def cpp_initialize(self, seed=5489):
-        """improper C++ seeding of the PRNG
+        """
+        Seed the MT as done in C++.
 
-        See http://www.pcg-random.org/posts/cpp-seeding-surprises.html"""
+        More information about why this type of seeding is particularly bad can
+        be found on http://www.pcg-random.org/posts/cpp-seeding-surprises.html.
+
+        :param int seed: the seed value
+        """
         self.state = [seed]
         for i in range(1, self.n):
             xi = self.f * (self.state[-1] ^ (self.state[-1] >> (self.w - 2)))
@@ -227,17 +300,29 @@ class MersenneTwister:
             self.state.append(xi)
 
     def cpp_uninitialize(self):
+        """
+        Return the C++ seed value for the current MT state.
+
+        :return: the seed value
+        :rtype: int
+        """
         state_xored = (self.f_inverse * (self.state[1] - 1)) % (1 << self.w)
         seed = self._unshift(state_xored, operator.__rshift__,
                              self.w-2, (1 << self.w) - 1)
-        self.state[0] = seed
+        self.state[0] = seed  # we can also recover the first state
+        return seed
 
     def temper(self, x):
-        """Apply tempering transform to the state value x
+        """
+        Apply tempering transform to the state value ``x``.
+
+        To generate a random number from the state, the ``temper`` function is
+        used on a number of the state.
 
         :param int x: the value to temper
         :return: the tempered value
-        :rtype: int"""
+        :rtype: int
+        """
         y = x ^ ((x >> self.u) & self.d)
         y = y ^ ((y << self.s) & self.b)
         y = y ^ ((y << self.t) & self.c)
@@ -245,14 +330,16 @@ class MersenneTwister:
         return z
 
     def untemper(self, z):
-        """Unapply tempering transform, useful for recovering the state
+        """
+        Unapply tempering transform, useful for recovering the state.
 
         This function can be used to recover an element in the MT state
         vector from an outputted random number.
 
         :param int z: the value to untemper
         :return: the untempered value
-        :rtype: int"""
+        :rtype: int
+        """
         y = self._unshift(z, operator.__rshift__, self.l, (1 << self.w) - 1)
         y = self._unshift(y, operator.__lshift__, self.t, self.c)
         y = self._unshift(y, operator.__lshift__, self.s, self.b)
@@ -261,6 +348,7 @@ class MersenneTwister:
         return x
 
     def update_state(self):
+        """Generate the next state of the Mersenne Twister."""
         # compute left vector to multiply with A
         upper = self.state[0] & self._upper_mask
         lower = self.state[1] & self._lower_mask
@@ -276,8 +364,9 @@ class MersenneTwister:
         self.state = self.state[1:] + [next_state]
 
     def revert_state(self):
+        """Generate the previous state of the Mersenne Twister."""
         def get_partial_state(offset):
-            """upper bits state[offset], lower bits state[offset+1]"""
+            """Return upper bits state[offset], lower bits state[offset+1]."""
             concatA = self.state[offset] ^ self.state[self.m + offset]
 
             # multiply with A inverse
@@ -298,5 +387,8 @@ class MersenneTwister:
         self.state = [previous_state] + self.state[:-1]
 
     def get_random(self):
+        """
+        Update the Mersenne Twister state and output a random number.
+        """
         self.update_state()
         return self.temper(self.state[-1])

@@ -4,11 +4,17 @@ from math import log, gcd, inf
 
 
 class Factor:
-    """Factorization module"""
+    """Factorize a positive number."""
 
     small_primes = {2, 3, 5, 7}
 
     def __init__(self, n):
+        """
+        Initialize to factor the integer ``n``.
+
+        :param int n: the number to factor
+        :raises ValueError: if ``n < 2``
+        """
         if n < 2:
             raise ValueError('n should be a positive number bigger than 2')
         self.n = n
@@ -21,7 +27,11 @@ class Factor:
             return '{} containing {}'.format(self.n, self.factors)
 
     def run(self, first_run=True):
-        """try to factor the number with several algorithms"""
+        """
+        Run several factorization algorithms on the number.
+
+        :param bool first_run: indicate if all algorithms should be run or not
+        """
         if not self.isfactored():
             if first_run:
                 self.smooth()
@@ -32,14 +42,14 @@ class Factor:
                 self.brent()
 
     def add_factor(self, p, k=1):
-        """add a prime factor p with multiplicity k"""
+        """Add a prime factor ``p`` with multiplicity ``k``."""
         try:
             self.factors[p] += k
         except KeyError:
             self.factors[p] = k
 
     def add_cofactor(self, cofactor):
-        """add a (composite) factor to factor into primes"""
+        """Add a (composite) factor to factor into primes."""
         if cofactor == 1:
             return
         elif self.isprime(cofactor):
@@ -51,7 +61,7 @@ class Factor:
                 self.add_factor(p, k)
 
     def cofactor(self):
-        """the number remaining to be factored"""
+        """Return the number remaining to be factored."""
         n = 1
         for p, k in self.factors.items():
             n *= p**k
@@ -59,7 +69,9 @@ class Factor:
         return self.n // n
 
     def carmichael(self):
-        """compute the Carmichael function"""
+        """
+        Return the result of the Carmichael function on the factorization.
+        """
         self.run()
         lambda_ = 1
         for p, k in self.factors.items():
@@ -72,7 +84,9 @@ class Factor:
         return lambda_
 
     def phi(self):
-        """compute Euler's totient function"""
+        """
+        Return the result of the Euler totient function on the factorization.
+        """
         self.run()
         phi = 1
         for p, k in self.factors.items():
@@ -80,7 +94,11 @@ class Factor:
         return phi
 
     def sieve(self, max_number):
-        """update the list of small primes until max_number"""
+        """
+        Update the list of small primes.
+
+        :param int max_number: the largest number to sieve for primes for
+        """
         max_prime = max(self.small_primes)
         if max_number <= max_prime:
             return
@@ -104,10 +122,19 @@ class Factor:
             self.small_primes.add(i)
 
     def isprime(self, n, k=64):
-        """Rabin–Miller primality test
+        """
+        Test if a number ``n`` is prime.
 
-        If n is composite then the test declares n probably prime with a
-        probability at most 2**(-2k)."""
+        This uses the Rabin--Miller primality test.
+        If ``n`` is composite then the test declares ``n`` probably prime with
+        a probability of at most :math:`2^{-2k}`.
+
+        :param int n: the number to test
+        :param int k: the certainty, the larger ``k``, the more certain that
+                      ``n`` is prime if indicated by the algorithm
+        :returns: ``False`` if not a prime, ``True`` if *probably* a prime
+        :rtype: bool
+        """
         if n <= 1:
             return False
 
@@ -118,7 +145,8 @@ class Factor:
             return False
 
         def iscomposite(a, d, s, n):
-            """determine if n is a composite
+            """
+            Test if ``n`` is a composite.
 
             Returns True if n is guaranteed composite
             Returns False if n is probably a prime"""
@@ -184,9 +212,11 @@ class Factor:
         return True
 
     def isfactored(self):
-        """check if n is fully factored
+        """
+        Test if ``n`` is fully factored.
 
-        The method may add new factors to the factor list."""
+        The method may add new factors to the factor list.
+        """
         cofactor = self.cofactor()
         if cofactor == 1:
             return True
@@ -196,7 +226,7 @@ class Factor:
         return False
 
     def brent(self):
-        """Brent's Monte Carlo factorization algorithm"""
+        """Brent's factorization algorithm."""
         n = self.cofactor()
         if n <= 2:
             return
@@ -228,7 +258,12 @@ class Factor:
         self.add_cofactor(g)
 
     def fermat(self, ratio=(1, 1)):
-        """Fermat's factorization algorithm for known ratio of factors"""
+        """
+        Fermat's factorization algorithm for known ratio of factors.
+
+        :param ratio: the ratio of factors
+        :type ratio: tuple(int, int)
+        """
         n = self.cofactor()
         isqrt_n = isqrt(n)
         if isqrt_n*isqrt_n == n:
@@ -259,7 +294,13 @@ class Factor:
         self.add_cofactor(factor2)
 
     def pollard_p1(self, bound, tries=inf):
-        """Pollard's p-1 factoring algorithm"""
+        """
+        Pollard's :math:`p-1` factoring algorithm.
+
+        :param int bound: the smoothness bound
+        :param tries: the maximum number of tries before giving up
+        :type tries: int or inf
+        """
         n = self.cofactor()
 
         self.sieve(bound)
@@ -286,7 +327,11 @@ class Factor:
                     return
 
     def smooth(self, max_prime=1048573):
-        """factor a smooth number (number with many small primes)"""
+        """
+        Factor a smooth number (number with many small primes).
+
+        :param int max_prime: the largest prime to sieve for
+        """
         if max(self.small_primes) < max_prime:
             self.sieve(max_prime)
         remainder = self.cofactor()
