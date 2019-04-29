@@ -58,6 +58,14 @@ class MersenneTwisterTestCase(unittest.TestCase):
 
         self.assertEqual(self.mt.state, state)
 
+    def test_python_uninitialize_bytes(self):
+        random.seed('a random string')
+
+        python_state = random.getstate()
+        self.mt.set_python_state(python_state)
+
+        self.assertEqual(self.mt.python_uninitialize_bytes(), b'a random string')
+
     def test_recover_python_seed(self):
         self.mt.urand_initialize()
 
