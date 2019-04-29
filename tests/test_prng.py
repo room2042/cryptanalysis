@@ -21,6 +21,18 @@ class MersenneTwisterTestCase(unittest.TestCase):
             r = mt.get_random()
         self.assertEqual(r, 9981545732273789042)
 
+    def test_set_python_state(self):
+        random.seed('some string')
+
+        python_state = random.getstate()
+        self.mt.set_python_state(python_state)
+
+        for i in range(10000):
+            r1 = random.randrange(2**32 - 1)
+            r2 = self.mt.get_random()
+
+        self.assertEqual(r1, r2)
+
     def test_cpp_uninitialize(self):
         self.mt.cpp_initialize()
         self.mt.cpp_uninitialize()

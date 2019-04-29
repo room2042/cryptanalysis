@@ -72,19 +72,32 @@ class MersenneTwister:
             y = value ^ (operator(y, shift) & mask)
         return y
 
+    def get_state(self):
+        return self.state
+
+    def set_state(self, state):
+        assert len(state) == self.n
+        self.state = state
+
+    def get_python_state(self):
+        """The Python internal state can be set using::
+            random.setstate(mt.get_python_state())
+        """
+        return (3, tuple(self.get_state()) + (624,), None)
+
+    def set_python_state(self, python_state):
+        """The Python internal state can be retrieved using::
+            mt.set_python_state(random.getstate())
+        """
+        self.set_state(list(python_state[1])[:-1])
+
     def urand_initialize(self):
         self.state = []
         for i in range(self.n):
             self.state.append(int.from_bytes(os.urandom(self.w // 8), byteorder='big'))
 
     def python_initialize(self, seed):
-        """Note: The Python state can be manipulated using::
-
-            mt = MersenneTwister()
-            python_state = (3, tuple(mt.state) + (624,), None)
-            random.setstate(python_state)
-
-        :raises NotImplementedError: always
+        """:raises NotImplementedError: always
         """
         raise NotImplementedError()
 
