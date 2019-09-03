@@ -9,7 +9,6 @@ class ClassicCipher:
         self.logger = logging.getLogger(__name__)
 
         self.ciphertext = ciphertext
-        self.byteorder = 'big'
         self.encoding = 'utf-8'
         self.ignore_bytes = set()
 
@@ -97,28 +96,16 @@ class ClassicCipher:
             return [string]
         return re.split(self._token_pattern, string)
 
-    #def to_byte(self, old):
-    #    if type(old) is bytes:
-    #        return old
-    #    elif type(old) is int:
-    #        new = old.to_bytes(old // 256 + 1, byteorder=self.byteorder)
-    #        return new
-    #    elif type(old) is str:
-    #        new = old.encode('utf-8')
-    #        return new
-    #    else:
-    #        raise ValueError('unknown type {} to convert to byte'.format(type(old)))
-
-    def _crypt(self, func, plaintext, key):
-        ct = b''
-        pts = self._tokenize(plaintext)
-        for pt in pts:
-            if pt in self._tokens:
+    def _crypt(self, func, m, key):
+        result = b''
+        chars = self._tokenize(m)
+        for char in chars:
+            if char in self._tokens:
                 # token needs to be ignored
-                ct += pt
+                result += char
                 continue
-            ct += func(pt, itertools.cycle(key))
-        return ct
+            result += func(char, itertools.cycle(key))
+        return result
 
     def _encrypt(self, plaintext):
         raise NotImplementedError
@@ -132,32 +119,32 @@ class ClassicCipher:
     def decrypt(self):
         return self._crypt(self._decrypt, self.ciphertext)
 
-    def score(self, plaintext):
-        score = 0
+    #def score(self, plaintext):
+    #    score = 0
 
-        try:
-            plaintext = plaintext.decode(self.encoding)
-        except UnicodeDecodeError:
-            self.logger.info('could not decode bytes to a string, ' \
-                    'continuing with raw bytes')
+    #    try:
+    #        plaintext = plaintext.decode(self.encoding)
+    #    except UnicodeDecodeError:
+    #        self.logger.info('could not decode bytes to a string, ' \
+    #                'continuing with raw bytes')
 
-        for c in plaintext:
-            # make sure we operate on bytes
-            try:
-                c = c.encode(self.encoding)
-                score += 1
-            except AttributeError:
-                pass
+    #    for c in plaintext:
+    #        # make sure we operate on bytes
+    #        try:
+    #            c = c.encode(self.encoding)
+    #            score += 1
+    #        except AttributeError:
+    #            pass
 
-            try:
-                score += self.frequencies[c]
-            except KeyError:
-                score += 100 / (21 ** 2) # estimate frequency of other symbols
+    #        try:
+    #            score += self.frequencies[c]
+    #        except KeyError:
+    #            score += 100 / (21 ** 2) # estimate frequency of other symbols
 
-        return score / len(plaintext)
+    #    return score / len(plaintext)
 
-    def analyse(self):
-        raise NotImplementedError
+    #def analyse(self):
+    #    raise NotImplementedError
 
 class Ceasar(ClassicCipher):
     def __init__(self, ciphertext=None):
@@ -169,19 +156,13 @@ class Ceasar(ClassicCipher):
 
     def _encrypt(self, plaintext, key):
         pt = self.alphabet.find(plaintext)
-        if type(key) is str:
-            key = key.encode(self.encoding)
-        if type(key) is bytes:
-            key = self.alphabet.find(key)
+        key = self.alphabet.find(key)
 
         return self.to_byte(self.alphabet[(pt + key) % len(self.alphabet)])
 
     def _decrypt(self, ciphertext, key):
         ct = self.alphabet.find(ciphertext)
-        if type(key) is str:
-            key = key.encode(self.encoding)
-        if type(key) is bytes:
-            key = self.alphabet.find(key)
+        key = self.alphabet.find(key)
 
         return self.to_byte(self.alphabet[(ct - key) % len(self.alphabet)])
 
