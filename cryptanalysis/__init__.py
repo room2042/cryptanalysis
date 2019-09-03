@@ -1,3 +1,5 @@
+import math
+
 try:
     import gmpy2
 
@@ -16,8 +18,6 @@ try:
     def jacobi(x, y):
         return gmpy2.jacobi(x, y)
 except ImportError:
-    import math
-
     def isqrt(n):
         """largest integer r such that r**2 <= n"""
         guess = (n >> n.bit_length() // 2) + 1
@@ -106,6 +106,8 @@ def crt(a_list, n_list):
     x = 0
     n = 1
     for ni in n_list:
+        if math.gcd(n, ni) != 1:
+            raise ValueError('n_list needs to contain only coprime elements')
         n *= ni
 
     for i in range(len(n_list)):
