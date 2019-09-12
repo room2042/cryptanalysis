@@ -108,6 +108,9 @@ class Factor:
         
         If n is composite then the test declares n probably prime with a
         probability at most 2**(-2k)."""
+        if n <= 1:
+            return False
+
         if n in self.small_primes:
             return True
 
