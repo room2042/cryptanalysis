@@ -1,6 +1,7 @@
 import unittest
 from cryptanalysis.factor import Factor
 
+
 class FactorTestCase(unittest.TestCase):
     def setUp(self):
         self.factors = {
@@ -25,10 +26,13 @@ class FactorTestCase(unittest.TestCase):
             Factor(-4)
 
     def test_carmichael(self):
-        self.assertEqual(5115037838417324496007394585520, self.factor.carmichael())
+        self.assertEqual(5115037838417324496007394585520,
+                         self.factor.carmichael())
 
     def test_phi(self):
-        self.assertEqual(1440394655298318578075682315282432000, self.factor.phi())
+        self.assertEqual(1440394655298318578075682315282432000,
+                         self.factor.phi())
+
 
 class FermatTestCase(unittest.TestCase):
     def test_fermat(self):
@@ -62,13 +66,14 @@ class FermatTestCase(unittest.TestCase):
         factor.fermat((1, 1))
 
     def test_RSA_fermat(self):
-        p = 11326943005628119672694629821649856331564947811949928186125208046290130000912216246378177299696220728414241927034282796937320547048361486068608744598351187
-        q = 11326943005628119672694629821649856331564947811949928186125208046290130000912120768861173564277210907403841603312764378561200102283658817695884193223692869
+        p = 11326943005628119672694629821649856331564947811949928186125208046290130000912216246378177299696220728414241927034282796937320547048361486068608744598351187  # noqa: E501
+        q = 11326943005628119672694629821649856331564947811949928186125208046290130000912120768861173564277210907403841603312764378561200102283658817695884193223692869  # noqa: E501
         factor = Factor(p * q)
         factor.fermat()
 
         self.assertIn(p, factor.factors)
         self.assertIn(q, factor.factors)
+
 
 class PollardTestCase(unittest.TestCase):
     def setUp(self):
@@ -92,6 +97,7 @@ class PollardTestCase(unittest.TestCase):
             self.assertIn(p, self.factor.factors)
             self.assertEqual(k, self.factor.factors[p])
 
+
 class SmoothTestCase(unittest.TestCase):
     def setUp(self):
         self.factors = {
@@ -113,6 +119,7 @@ class SmoothTestCase(unittest.TestCase):
             self.assertIn(p, self.factor.factors)
             self.assertEqual(k, self.factor.factors[p])
 
+
 class BrentTestCase(unittest.TestCase):
     def setUp(self):
         self.factors = {
@@ -132,9 +139,10 @@ class BrentTestCase(unittest.TestCase):
         for p, k in self.factors.items():
             self.assertIn(p, self.factor.factors)
             self.assertEqual(k, self.factor.factors[p])
-        
+
         # test finished factoring
         self.factor.brent()
+
 
 if __name__ == '__main__':
     unittest.main()

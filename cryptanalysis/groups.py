@@ -2,9 +2,9 @@ import hmac
 import math
 import os
 import random
-
 from cryptanalysis import ceildiv, isqrt, modinv, legendre, crt, crt_pow
 from cryptanalysis.factor import Factor
+
 
 class GenericGroup:
     """Generic group algorithms"""
@@ -46,7 +46,7 @@ class GenericGroup:
 
     def baby_step_giant_step(self, h, base, baby_steps=None):
         """baby-step, giant-step discrete logarithm algorithm"""
-        if baby_steps == None:
+        if baby_steps is None:
             baby_steps = isqrt(base.order()) + 1
         giant_steps = ceildiv(base.order(), baby_steps)
 
@@ -102,6 +102,7 @@ class GenericGroup:
         def repeated_operator(self, repeat):
             """repeatedly apply the group operator on the element"""
             raise NotImplemented()
+
 
 class MultiplicativeGroup(GenericGroup):
     """Cyclic group modulo n"""
@@ -202,7 +203,7 @@ class MultiplicativeGroup(GenericGroup):
             for i in range(1, k+1):
                 h0 = (h * (base ** -a0)) ** (base.order() // (p**i))
                 a = self.baby_step_giant_step(h0, g0)
-                if a == None:
+                if a is None:
                     return None
                 a0 = a0 + p**(i-1) * a
 
@@ -321,9 +322,11 @@ class MultiplicativeGroup(GenericGroup):
                 base = self.g
                 exponent = other
 
-            if self.group.n.bit_length() > 512 and self.group.factor.isfactored():
-                # optimized computation using the factors of a large group order
-                return self.group(crt_pow(base, exponent, self.group.factor.factors))
+            if (self.group.n.bit_length() > 512 and
+                    self.group.factor.isfactored()):
+                # optimized computation using the factors of the group order
+                power = crt_pow(base, exponent, self.group.factor.factors)
+                return self.group(power)
             else:
                 return self.group(pow(base, exponent, self.group.n))
 
@@ -335,7 +338,7 @@ class MultiplicativeGroup(GenericGroup):
                     self._order = math.inf
                     return self._order
 
-                factors = dict(self.group.factored_order()) # deep copy
+                factors = dict(self.group.factored_order())  # deep copy
                 order = self.group.order()
                 for p, k in self.group.factored_order().items():
                     for _ in range(k):
@@ -367,9 +370,10 @@ class MultiplicativeGroup(GenericGroup):
 
         def repeated_operator(self, repeat):
             """repeatedly apply the group operator on the element"""
-            if type(other) is not int:
+            if type(repeat) is not int:
                 raise ValueError('need to repeat with integer value')
-            return self ** other
+            return self ** repeat
+
 
 class SchnorrGroup(MultiplicativeGroup):
     """Finite Field Cryptography (FFC) Schnorr group
@@ -422,20 +426,20 @@ class SchnorrGroup(MultiplicativeGroup):
             raise ValueError('incorrect bit lengths, 1 < N < L needed')
 
         while True:
-            p = q = 4 # initalize with a composite number
+            p = q = 4  # initalize with a composite number
             factor = Factor(q)
             while not factor.isprime(q):
                 U = int.from_bytes(os.urandom((N+7) // 8), byteorder='big')
                 U %= (1 << N-1)
-                U |= (1 << N-1) # U.bit_length() = N
-                q = U + 1 - (U % 2) # q is odd
+                U |= (1 << N-1)  # U.bit_length() = N
+                q = U + 1 - (U % 2)  # q is odd
                 factor = Factor(q)
 
             for i in range(4*L):
                 X = int.from_bytes(os.urandom((L+7) // 8), byteorder='big')
                 X %= (1 << L-1)
-                X |= (1 << L-1) # X.bit_length() = L
-                p = X - (X % (2*q)) + 1 # p = 1 (mod 2q)
+                X |= (1 << L-1)  # X.bit_length() = L
+                p = X - (X % (2*q)) + 1  # p = 1 (mod 2q)
                 if p.bit_length() >= L and factor.isprime(p):
                     self.__init__(p, q)
                     return (p, q)
@@ -480,7 +484,7 @@ class SchnorrGroup(MultiplicativeGroup):
         if self.p % 4 == 3:
             return h**((self.p + 1) // 4)
         else:
-            # Shanks' Algorithm
+            # Tonelli-Shanks Algorithm
             n = 2
             while legendre(n, self.p) != -1:
                 n = random.randrange(2, self.p)
@@ -496,8 +500,11 @@ class SchnorrGroup(MultiplicativeGroup):
             b = h * x**2
             x *= h
 
-            # find the smallest m such that b**(2**m) = 1
             while b != 1:
+                m, s = 1, b**2
+                while s != 1:
+                    m += 1
+                    s **= 2
                 t = y**(2**(r - m - 1))
                 y = t**2
                 r = m

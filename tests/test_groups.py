@@ -2,6 +2,7 @@ import math
 import unittest
 from cryptanalysis.groups import MultiplicativeGroup, SchnorrGroup
 
+
 class GroupOperationsTestCase(unittest.TestCase):
     def setUp(self):
         self.G1 = MultiplicativeGroup(23)
@@ -123,9 +124,13 @@ class GroupOperationsTestCase(unittest.TestCase):
 
     def test_element_dlog(self):
         self.assertEqual(self.G.dlog(self.g2, self.g), 13)
-        self.assertEqual(self.G.dlog(self.g2, self.g, self.G.exhaustive_search), 13)
-        self.assertEqual(self.G.dlog(self.g2, self.g, self.G.baby_step_giant_step), 13)
-        self.assertEqual(self.G5.dlog(7531, self.g5, self.G5.pohlighellman), 6689)
+        self.assertEqual(self.G.dlog(self.g2, self.g,
+                                     self.G.exhaustive_search), 13)
+        self.assertEqual(self.G.dlog(self.g2, self.g,
+                                     self.G.baby_step_giant_step), 13)
+        self.assertEqual(self.G5.dlog(7531, self.g5,
+                                      self.G5.pohlighellman), 6689)
+
 
 class CompositeGroupTestCase(unittest.TestCase):
     def setUp(self):
@@ -175,14 +180,16 @@ class CompositeGroupTestCase(unittest.TestCase):
 
     def test_element_dlog(self):
         self.assertEqual(self.G1.dlog(89, self.g1), 5)
-        self.assertEqual(self.G1.dlog(89, self.g1, self.G1.exhaustive_search), 5)
+        self.assertEqual(self.G1.dlog(89, self.g1,
+                                      self.G1.exhaustive_search), 5)
         self.assertEqual(self.G1.dlog(89, self.g1, self.G1.pohlighellman), 5)
         self.assertEqual(self.G2.dlog(3125, self.g2, self.G2.pohlighellman), 5)
         self.assertEqual(self.G3.dlog(9571, self.G3(65537)), 8)
 
+
 class SchnorrGroupTestCase(unittest.TestCase):
     def setUp(self):
-        p = 91963351287114509810976103701583676604219034744988050402811969296353490883155020381014035655928792644506981621199078746939173961001551882502698720098128716509792416686791624573908434518769759371967445834633509375433924324143955705197779381523827817772395764887436528163855894063455209430781092753045723959471
+        p = 91963351287114509810976103701583676604219034744988050402811969296353490883155020381014035655928792644506981621199078746939173961001551882502698720098128716509792416686791624573908434518769759371967445834633509375433924324143955705197779381523827817772395764887436528163855894063455209430781092753045723959471  # noqa: E501
         q = 170585623065927333025452925743256993957
         self.G = SchnorrGroup(p, q)
         self.g = self.G.generator()
@@ -191,7 +198,7 @@ class SchnorrGroupTestCase(unittest.TestCase):
         self.assertEqual(self.g ** self.G.q, 1)
 
     def test_hash(self):
-        self.assertEqual(self.G.hash(b'test'), 37910923454888818569616077927813730047628065272600745373933926679196530322548218379456703935169287194501433162362982765239000640389828314170175239962219779660840183140490846173431608305214378565167396498008181234728525374478115422978764538585578507334243051054927735628029001925506840414221279746583622612686)
+        self.assertEqual(self.G.hash(b'test'), 37910923454888818569616077927813730047628065272600745373933926679196530322548218379456703935169287194501433162362982765239000640389828314170175239962219779660840183140490846173431608305214378565167396498008181234728525374478115422978764538585578507334243051054927735628029001925506840414221279746583622612686)  # noqa: E501
 
     def test_sqrt(self):
         base = self.g**43
@@ -200,7 +207,7 @@ class SchnorrGroupTestCase(unittest.TestCase):
         self.assertEqual(sqrt**2, h)
 
         # alternative with p % 4 != 3
-        p = 119007264594570647584938135667609459155973326816001138517488922973781436043928518486840456851455043075567598272697863022720892363821879196538279077722622854558151346492445648226832991583597453819617192707985612203288340885077450685661828612714352223669883172921017233596355384207628730470526285624279538954409
+        p = 119007264594570647584938135667609459155973326816001138517488922973781436043928518486840456851455043075567598272697863022720892363821879196538279077722622854558151346492445648226832991583597453819617192707985612203288340885077450685661828612714352223669883172921017233596355384207628730470526285624279538954409  # noqa: E501
         q = 310881042874170916758319558682861459317
         G = SchnorrGroup(p, q)
         g = G.generator()
@@ -208,6 +215,7 @@ class SchnorrGroupTestCase(unittest.TestCase):
         h = base**2
         sqrt = G.sqrt(h)
         self.assertEqual(sqrt**2, h)
+
 
 if __name__ == '__main__':
     unittest.main()

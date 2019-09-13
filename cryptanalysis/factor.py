@@ -2,6 +2,7 @@ import random
 from cryptanalysis import ceildiv, isqrt, lcm
 from math import log, gcd, inf
 
+
 class Factor:
     """Factorization module"""
 
@@ -27,7 +28,7 @@ class Factor:
             while not self.isfactored():
                 if self.n.bit_length() >= 80:
                     print('factoring {} '
-                        '(this might take a while)'.format(self.n))
+                          '(this might take a while)'.format(self.n))
                 self.brent()
 
     def add_factor(self, p, k=1):
@@ -84,9 +85,8 @@ class Factor:
         if max_number <= max_prime:
             return
 
-        max_number += 1 # because of zero indexing
+        max_number += 1  # because of zero indexing
         multiples = [False] * max_number
-        primes = self.small_primes
 
         # sieve the known primes out
         for prime in self.small_primes:
@@ -105,7 +105,7 @@ class Factor:
 
     def isprime(self, n, k=64):
         """Rabin–Miller primality test
-        
+
         If n is composite then the test declares n probably prime with a
         probability at most 2**(-2k)."""
         if n <= 1:
@@ -119,7 +119,7 @@ class Factor:
 
         def iscomposite(a, d, s, n):
             """determine if n is a composite
-            
+
             Returns True if n is guaranteed composite
             Returns False if n is probably a prime"""
             x = pow(a, d, n)
@@ -139,7 +139,7 @@ class Factor:
             s += 1
 
         # deterministic special cases
-        # from https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
+        # see https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
         if n < 2047:
             return not iscomposite(2, d, s, n)
         if n < 1373653:
@@ -153,19 +153,28 @@ class Factor:
         if n < 4759123141:
             return not any(iscomposite(a, d, s, n) for a in (2, 7, 61))
         if n < 1122004669633:
-            return not any(iscomposite(a, d, s, n) for a in (2, 13, 23, 1662803))
+            return not any(iscomposite(a, d, s, n)
+                           for a in (2, 13, 23, 1662803))
         if n < 2152302898747:
-            return not any(iscomposite(a, d, s, n) for a in (2, 3, 5, 7, 11))
+            return not any(iscomposite(a, d, s, n)
+                           for a in (2, 3, 5, 7, 11))
         if n < 3474749660383:
-            return not any(iscomposite(a, d, s, n) for a in (2, 3, 5, 7, 11, 13))
+            return not any(iscomposite(a, d, s, n)
+                           for a in (2, 3, 5, 7, 11, 13))
         if n < 341550071728321:
-            return not any(iscomposite(a, d, s, n) for a in (2, 3, 5, 7, 11, 13, 17))
+            return not any(iscomposite(a, d, s, n)
+                           for a in (2, 3, 5, 7, 11, 13, 17))
         if n < 3825123056546413051:
-            return not any(iscomposite(a, d, s, n) for a in (2, 3, 5, 7, 11, 13, 17, 19, 23))
+            return not any(iscomposite(a, d, s, n)
+                           for a in (2, 3, 5, 7, 11, 13, 17, 19, 23))
         if n < 318665857834031151167461:
-            return not any(iscomposite(a, d, s, n) for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37))
+            return not any(iscomposite(a, d, s, n)
+                           for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
+                                     31, 37))
         if n < 3317044064679887385961981:
-            return not any(iscomposite(a, d, s, n) for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41))
+            return not any(iscomposite(a, d, s, n)
+                           for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
+                                     31, 37, 41))
 
         # probabilistic test otherwise
         for _ in range(k):
@@ -192,24 +201,26 @@ class Factor:
         if n <= 2:
             return
 
-        y, c, m = random.randrange(1, n), random.randrange(1, n), random.randrange(1, n)
+        y = random.randrange(1, n)
+        c = random.randrange(1, n)
+        m = random.randrange(1, n)
         g, r, q = 1, 1, 1
         while g == 1:
             x = y
             for i in range(r):
-                y = ((y*y)%n + c) % n
+                y = ((y*y) % n + c) % n
             k = 0
             while (k < r and g == 1):
                 ys = y
                 for i in range(min(m, r-k)):
-                    y = ((y*y)%n + c) % n
+                    y = ((y*y) % n + c) % n
                     q = q*(abs(x-y)) % n
                 g = gcd(q, n)
                 k = k + m
             r = r*2
         if g == n:
             while True:
-                ys = ((ys*ys)%n + c) % n
+                ys = ((ys*ys) % n + c) % n
                 g = gcd(abs(x-ys), n)
                 if g > 1:
                     break
@@ -236,9 +247,9 @@ class Factor:
         a = isqrt(n) + 1
         b2 = a*a - n
         b = isqrt(b2)
-        while b*b != b2: 
-            a = a + 1 
-            b2 = a*a - n 
+        while b*b != b2:
+            a = a + 1
+            b2 = a*a - n
             b = isqrt(b2)
 
         factor1 = gcd(self.cofactor(), a - b)
@@ -273,7 +284,6 @@ class Factor:
                 if gcd_ != 1:
                     self.add_cofactor(gcd_)
                     return
-
 
     def smooth(self, max_prime=1048573):
         """factor a smooth number (number with many small primes)"""

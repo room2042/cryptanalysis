@@ -1,7 +1,7 @@
 import operator
 import os
-
 from cryptanalysis import modinv
+
 
 class MersenneTwister:
     """Mersenne Twister module
@@ -94,7 +94,8 @@ class MersenneTwister:
     def urand_initialize(self):
         self.state = []
         for i in range(self.n):
-            self.state.append(int.from_bytes(os.urandom(self.w // 8), byteorder='big'))
+            self.state.append(int.from_bytes(os.urandom(self.w // 8),
+                                             byteorder='big'))
 
     def python_initialize(self, seed):
         """:raises NotImplementedError: always
@@ -108,12 +109,14 @@ class MersenneTwister:
         # at most self.n - 1, otherwise we cannot recover the entire key
         MAX_KEY_LENGTH = self.n - 1
 
-        u32 = lambda x: x % (1 << self.w)
+        u32 = lambda x: x % (1 << self.w)  # noqa: E731
 
         # generate initial state
         initial_state = [19650218]
         for i in range(1, self.n):
-            xi = self.f * (initial_state[-1] ^ (initial_state[-1] >> (self.w - 2))) + i
+            xi = self.f
+            xi *= initial_state[-1] ^ (initial_state[-1] >> (self.w - 2))
+            xi += i
             xi &= (1 << self.w) - 1
             initial_state.append(xi)
 
@@ -134,7 +137,9 @@ class MersenneTwister:
                     state[0] = state[self.n-1]
                 j = (j - 1) % key_length
 
-                init_key[j] = u32(state[i] - u32(initial_state[i] ^ ((state[i-1] ^ (state[i-1] >> 30)) * 1664525)) - j)
+                t = u32(initial_state[i] ^
+                        ((state[i-1] ^ (state[i-1] >> 30)) * 1664525))
+                init_key[j] = u32(state[i] - t - j)
 
             return init_key
 
@@ -148,7 +153,8 @@ class MersenneTwister:
 
             initial_k = max(MAX_KEY_LENGTH, self.n)
             for _ in range(initial_k):
-                state[i] = u32((state[i] ^ ((state[i-1] ^ (state[i-1] >> 30)) * 1664525)) + init_key[j] + j);
+                t = state[i] ^ ((state[i-1] ^ (state[i-1] >> 30)) * 1664525)
+                state[i] = u32(t + init_key[j] + j)
                 i = (i % (self.n - 1)) + 1
                 if i == 1:
                     state[0] = state[self.n-1]
@@ -166,7 +172,9 @@ class MersenneTwister:
             if i == 1:
                 intermediate_state[0] = intermediate_state[self.n-1]
 
-            intermediate_state[i] = u32(intermediate_state[i] + i) ^ u32((intermediate_state[i-1] ^ (intermediate_state[i-1] >> 30)) * 1566083941)
+            t = intermediate_state[i-1] ^ (intermediate_state[i-1] >> 30)
+            t = u32(t * 1566083941)
+            intermediate_state[i] = u32(intermediate_state[i] + i) ^ t
 
         intermediate_state[0] = intermediate_state[self.n-1]
 
@@ -177,7 +185,8 @@ class MersenneTwister:
             if state == intermediate_state:
                 # convert from little endian
                 init_key = init_key[::-1]
-                return [x.to_bytes((x.bit_length() + 7) // 8, byteorder='big') for x in init_key]
+                return [x.to_bytes((x.bit_length() + 7) // 8, byteorder='big')
+                        for x in init_key]
 
         # we should not reach here
         assert False
@@ -185,7 +194,8 @@ class MersenneTwister:
     def python_uninitialize_bytes(self):
         seed = b''.join(self.python_uninitialize())
 
-        # remove sha512 hash from end of seed (only if seed was a string or bytes)
+        # remove sha512 hash from end of seed
+        # (only if seed was a string or bytes)
         seed = seed[:-64]
 
         return seed
@@ -196,7 +206,8 @@ class MersenneTwister:
         See http://www.pcg-random.org/posts/cpp-seeding-surprises.html"""
         self.state = [seed]
         for i in range(1, self.n):
-            xi = self.f * (self.state[-1] ^ (self.state[-1] >> (self.w - 2))) + i
+            xi = self.f * (self.state[-1] ^ (self.state[-1] >> (self.w - 2)))
+            xi += i
             xi &= (1 << self.w) - 1
             self.state.append(xi)
 

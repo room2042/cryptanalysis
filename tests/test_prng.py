@@ -1,14 +1,15 @@
-import os
 import random
 import unittest
 from cryptanalysis.prng import MersenneTwister
+
 
 class MersenneTwisterTestCase(unittest.TestCase):
     def setUp(self):
         self.mt = MersenneTwister()
 
     def test_get_random(self):
-        # Test case from https://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine#Notes
+        # Test case from
+        # https://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine#Notes
         mt = MersenneTwister('mt19937')
         mt.cpp_initialize()
         for i in range(10000):
@@ -47,7 +48,7 @@ class MersenneTwisterTestCase(unittest.TestCase):
 
     def test_revert_state(self):
         self.mt.urand_initialize()
-        self.mt.update_state() # can never recover the first state
+        self.mt.update_state()  # can never recover the first state
         state = self.mt.state
 
         for i in range(self.mt.n):
@@ -64,7 +65,8 @@ class MersenneTwisterTestCase(unittest.TestCase):
         python_state = random.getstate()
         self.mt.set_python_state(python_state)
 
-        self.assertEqual(self.mt.python_uninitialize_bytes(), b'a random string')
+        self.assertEqual(self.mt.python_uninitialize_bytes(),
+                         b'a random string')
 
     def test_recover_python_seed(self):
         self.mt.urand_initialize()
