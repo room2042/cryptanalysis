@@ -1,6 +1,7 @@
 import unittest
 from cryptanalysis import isqrt, lcm, modinv, legendre, jacobi, crt_pow
 
+
 class SimpleTestCase(unittest.TestCase):
     def product(self, factors):
         n = 1
@@ -65,6 +66,7 @@ class SimpleTestCase(unittest.TestCase):
         factors = {2: 2, 19: 2, 35189051: 3}
         x, y, n = 10, 234, self.product(factors)
         self.assertEqual(pow(x, y, n), crt_pow(x, y, factors))
+
 
 if __name__ == '__main__':
     unittest.main()

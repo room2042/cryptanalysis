@@ -97,9 +97,11 @@ except ImportError:
 
         return 0
 
+
 def ceildiv(a, b):
     """ceil division of a divides by b"""
     return int(-(-a // b))
+
 
 def crt(a_list, n_list):
     """compute x mod prod(n_i) from the congruences x = a_i (mod n_i)"""
@@ -117,8 +119,11 @@ def crt(a_list, n_list):
 
     return x % n
 
+
 def crt_pow(x, y, factors):
-    """compute pow(x, y, prod(factors)) using the Chinese remainder theorem"""
+    """
+    compute ``pow(x, y, prod(factors))`` using the Chinese remainder theorem
+    """
     a_list = []
     n_list = []
     for p, k in factors.items():
