@@ -8,6 +8,8 @@ class MersenneTwister:
 
     See https://en.wikipedia.org/wiki/Mersenne_Twister for more details."""
     def __init__(self, variant='mt19937', seed=None):
+        self.variant = variant
+
         if variant == 'mt19937':
             self.w = 32
             self.n = 624
@@ -20,7 +22,7 @@ class MersenneTwister:
             self.b = 0x9d2c5680
             self.t = 15
             self.c = 0xefc60000
-            self.l = 18
+            self.l = 18  # noqa: E741
             self.f = 1812433253
         elif variant == 'mt19937-64':
             self.w = 64
@@ -34,7 +36,7 @@ class MersenneTwister:
             self.b = 0x71d67fffeda60000
             self.t = 37
             self.c = 0xfff7eee000000000
-            self.l = 43
+            self.l = 43  # noqa: E741
             self.f = 6364136223846793005
         elif variant == 'mt11213b':
             self.w = 32
@@ -48,7 +50,7 @@ class MersenneTwister:
             self.b = 0x31b6ab00
             self.t = 15
             self.c = 0xffe50000
-            self.l = 18
+            self.l = 18  # noqa: E741
             self.f = 1812433253
         else:
             raise ValueError('unknown variant')
@@ -83,13 +85,26 @@ class MersenneTwister:
         """The Python internal state can be set using::
             random.setstate(mt.get_python_state())
         """
-        return (3, tuple(self.get_state()) + (624,), None)
+        if self.variant != 'mt19937':
+            raise ValueError('Python only supports the mt19937 variant')
+
+        version = 3
+        internalstate = tuple(self.get_state()) + (self.n,)
+        gauss_next = None
+
+        return (version, internalstate, gauss_next)
 
     def set_python_state(self, python_state):
         """The Python internal state can be retrieved using::
             mt.set_python_state(random.getstate())
         """
-        self.set_state(list(python_state[1])[:-1])
+        version, internalstate, gauss_next = python_state
+        elements, index = list(internalstate[:-1]), internalstate[-1]
+        self.set_state(elements)
+        for _ in range(self.n - index):
+            # we don't use an index unlike Python: we update the state
+            # one-by-one, so we have to revert the already generated elements
+            self.revert_state()
 
     def urand_initialize(self):
         self.state = []
