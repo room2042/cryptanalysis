@@ -93,15 +93,15 @@ class GenericGroup:
 
         def operator(self, other):
             """operator imposed by the group"""
-            raise NotImplemented()
+            raise NotImplementedError()
 
         def inverse(self):
             """inverse of a group element"""
-            raise NotImplemented()
+            raise NotImplementedError()
 
         def repeated_operator(self, repeat):
             """repeatedly apply the group operator on the element"""
-            raise NotImplemented()
+            raise NotImplementedError()
 
 
 class MultiplicativeGroup(GenericGroup):
@@ -627,13 +627,13 @@ class SchnorrGroup(MultiplicativeGroup):
 
         See: https://crypto.stackexchange.com/questions/39877#39879"""
         digest_size = hmac.new(b'', b'', H).digest_size
-        l = ceildiv(self.p.bit_length(), digest_size * 8) + 1
-        if l > digest_size * 8:
+        length = ceildiv(self.p.bit_length(), digest_size * 8) + 1
+        if length > digest_size * 8:
             raise ValueError('hash function domain too small')
 
         # build concatination of hashes
         h = b''
-        for i in range(l):
+        for i in range(length):
             key = i.to_bytes(digest_size, byteorder='big')
             h += hmac.digest(key, m, H)
 
