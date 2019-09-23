@@ -25,6 +25,9 @@ class MersenneTwisterTestCase(unittest.TestCase):
     def test_set_python_state(self):
         random.seed('some string')
 
+        # make sure the index is changed
+        random.randrange(2**32 - 1)
+
         python_state = random.getstate()
         self.mt.set_python_state(python_state)
 
