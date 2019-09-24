@@ -107,8 +107,8 @@ class MersenneTwister:
         Return the Mersenne Twister state compatible with Python.
 
         This method returns the Mersenne Twister state, compatible with
-        Python's method :meth:`random.getstate`.
-        The internal state can be set :meth:`random.setstate`.
+        Python's method :func:`random.getstate`.
+        The internal state can be set :func:`random.setstate`.
 
         .. code-block:: python3
 
@@ -135,7 +135,7 @@ class MersenneTwister:
         Set the internal state from a Python state.
 
         This is a convenience method to set the MT state from a Python state
-        obtained by :meth:`random.getstate`.
+        obtained by :func:`random.getstate`.
 
         .. code-block: python3
 
@@ -143,7 +143,7 @@ class MersenneTwister:
             mt.set_python_state(random.getstate())
 
         :param python_state: a Python random state obtained as
-                             :meth:`random.getstate`
+                             :func:`random.getstate`
         :raises ValueError: if the state version is not recognized
         """
         version, internalstate, gauss_next = python_state
@@ -158,7 +158,7 @@ class MersenneTwister:
             self.revert_state()
 
     def urand_initialize(self):
-        """Initialize the MT state using :meth:`os.urand`."""
+        """Initialize the MT state using :func:`os.urand`."""
         self.state = []
         for i in range(self.n):
             self.state.append(int.from_bytes(os.urandom(self.w // 8),
