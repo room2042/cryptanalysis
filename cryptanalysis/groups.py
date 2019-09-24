@@ -159,7 +159,7 @@ class GenericGroup:
             Return the factors of the order of the group element.
 
             :returns: factors of the element's order
-            :rtype: dict()
+            :rtype: dict(int, int)
             """
             if self._factored_order is None:
                 factor = Factor(self.order())
@@ -652,8 +652,8 @@ class RSAGroup(MultiplicativeGroup):
         :type encoding: cryptography.hazmat.primitives.serialization.Encoding
                         or None
         :param format: private key format to use, if ``None`` use PKCS8
-        :type format: cryptography.hazmat.primitives.serialization.\
-                      PrivateFormat.PKCS8 or None
+        :type format: \
+            cryptography.hazmat.primitives.serialization.PrivateFormat or None
         :returns: the encoded private key
         :rtype: bytes
         """
@@ -842,7 +842,7 @@ class SchnorrGroup(MultiplicativeGroup):
 
         :param bytes m: the input to hash
         :param str H: hash function to use, as specified by
-                      :funct:`hmac.digest`
+                      :func:`hmac.digest`
         """
         digest_size = hmac.new(b'', b'', H).digest_size
         length = ceildiv(self.p.bit_length(), digest_size * 8) + 1

@@ -35,6 +35,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.extlinks',
     'sphinx.ext.githubpages',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
 ]
@@ -359,3 +360,9 @@ autodoc_default_options = {
 
 # -- Options for extlinks
 extlinks = {'doi': ('https://doi.org/%s', 'DOI:')}
+
+# -- Options for intersphinx
+intersphinx_mapping = {
+    'cryptography': ('https://cryptography.io/en/latest', None),
+    'python': ('https://docs.python.org/3', None),
+}
