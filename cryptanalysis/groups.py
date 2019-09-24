@@ -155,7 +155,7 @@ class MultiplicativeGroup(GenericGroup):
         """all possible orders of the subgroups"""
         if self._divisors is None:
             divisors = {1}
-            factor = Factor(self.exponent)
+            factor = Factor(self.exponent())
             factor.run()
             for p, k in factor.factors.items():
                 divisors |= {d * p**e for e in range(1, k+1) for d in divisors}
