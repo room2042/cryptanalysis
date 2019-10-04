@@ -19,7 +19,17 @@ try:
         return gmpy2.jacobi(x, y)
 except ImportError:
     def isqrt(n):
-        """Return the largest integer ``r`` such that ``r**2 <= n``."""
+        """
+        Return the largest integer ``r`` such that ``r**2 <= n``.
+
+        :param int n: a number ``n``
+        :returns: the largest ``r`` such that ``r**2 <= n``
+        :rtype: int
+        :raises ValueError: if ``n`` is negative
+        """
+        if n < 0:
+            raise ValueError('isqrt of negative number')
+
         guess = (n >> n.bit_length() // 2) + 1
         result = (guess + n // guess) // 2
         while abs(result - guess) > 1:
