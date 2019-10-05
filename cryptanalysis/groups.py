@@ -703,22 +703,6 @@ class RSAGroup(MultiplicativeGroup):
         :returns: whether the attack was successful or not
         :rtype: bool
         """
-        def convergent(fractions, j):
-            """
-            Compute the ``j``th convergent of a continued fraction.
-
-            Using the Euler-Wallis Theorem.
-
-            :returns: ``(a, b)`` where the convergent is ``a / b``
-            :rtype: tuple(int, int)
-            """
-            a2, a1, b2, b1 = 0, 1, 1, 0
-            for f in fractions[:j]:
-                a1, a2 = f*a1 + a2, a1
-                b1, b2 = f*b1 + b2, b1
-
-            return (a1, b1)
-
         # compute the continued fractions
         numerator, denominator = self.e, self.n
         fractions = []
@@ -729,12 +713,18 @@ class RSAGroup(MultiplicativeGroup):
             numerator = denominator
             denominator = r
 
-        # try to factor ``n``
-        for i in range(2, len(fractions)):
-            a, b = convergent(fractions, i)
-            if a > 0 and (self.e*b - 1) % a == 0:
+        # Try to factor ``n`` by computing the ``j``th convergent of a
+        # continued fraction using the Euler--Wallis Theorem.
+        # The convergent is ``a1 / b1``.
+        a2, a1, b2, b1 = 0, 1, 1, 0  # read as a_{i-2}, a_{i-1}, ...
+        for f in fractions:
+            a1, a2 = f*a1 + a2, a1
+            b1, b2 = f*b1 + b2, b1
+
+            # now test if we can factor ``n`` using the convergent a1 / b1
+            if a1 > 0 and (self.e*b1 - 1) % a1 == 0:
                 try:
-                    self.phi((self.e*b - 1) // a)
+                    self.phi((self.e*b1 - 1) // a1)
                     return True
                 except ValueError:
                     continue
