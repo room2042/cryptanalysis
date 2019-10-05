@@ -1,6 +1,6 @@
 import random
 from cryptanalysis import ceildiv, isqrt, lcm
-from math import log, gcd, inf
+import math
 
 
 class Factor:
@@ -245,13 +245,13 @@ class Factor:
                 for i in range(min(m, r-k)):
                     y = ((y*y) % n + c) % n
                     q = q*(abs(x-y)) % n
-                g = gcd(q, n)
+                g = math.gcd(q, n)
                 k = k + m
             r = r*2
         if g == n:
             while True:
                 ys = ((ys*ys) % n + c) % n
-                g = gcd(abs(x-ys), n)
+                g = math.gcd(abs(x-ys), n)
                 if g > 1:
                     break
 
@@ -271,7 +271,7 @@ class Factor:
             self.add_cofactor(isqrt_n)
             return
 
-        common_factors = gcd(ratio[0], ratio[1])
+        common_factors = math.gcd(ratio[0], ratio[1])
         u = ratio[0] // common_factors
         v = ratio[1] // common_factors
         n *= u * v
@@ -287,19 +287,19 @@ class Factor:
             b2 = a*a - n
             b = isqrt(b2)
 
-        factor1 = gcd(self.cofactor(), a - b)
-        factor2 = gcd(self.cofactor(), a + b)
+        factor1 = math.gcd(self.cofactor(), a - b)
+        factor2 = math.gcd(self.cofactor(), a + b)
 
         self.add_cofactor(factor1)
         self.add_cofactor(factor2)
 
-    def pollard_p1(self, bound, tries=inf):
+    def pollard_p1(self, bound, tries=math.inf):
         """
         Pollard's :math:`p-1` factoring algorithm.
 
         :param int bound: the smoothness bound
         :param tries: the maximum number of tries before giving up
-        :type tries: int or inf
+        :type tries: int or math.inf
         """
         n = self.cofactor()
 
@@ -310,20 +310,20 @@ class Factor:
             tries -= 1
             x = random.randrange(2, n)
 
-            gcd_ = gcd(x, n)
-            if gcd_ != 1:
-                self.add_cofactor(gcd_)
+            gcd = math.gcd(x, n)
+            if gcd != 1:
+                self.add_cofactor(gcd)
                 return
 
             for q in primes:
                 if q > bound:
                     break
-                Q = pow(q, ceildiv(log(n), log(q)))
+                Q = pow(q, ceildiv(math.log(n), math.log(q)))
                 x = pow(x, Q, n)
 
-                gcd_ = gcd(x-1, n)
-                if gcd_ != 1:
-                    self.add_cofactor(gcd_)
+                gcd = math.gcd(x-1, n)
+                if gcd != 1:
+                    self.add_cofactor(gcd)
                     return
 
     def smooth(self, max_prime=1048573):
