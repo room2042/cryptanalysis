@@ -30,7 +30,7 @@ except ImportError:
         if n < 0:
             raise ValueError('isqrt of negative number')
 
-        guess = (n >> n.bit_length() // 2) + 1
+        guess = (n >> (n.bit_length() // 2)) + 1
         result = (guess + n // guess) // 2
         while abs(result - guess) > 1:
             guess = result
