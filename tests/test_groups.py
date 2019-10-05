@@ -1,5 +1,6 @@
 import math
 import unittest
+
 from cryptanalysis.groups import MultiplicativeGroup, RSAGroup, SchnorrGroup
 
 

@@ -1,5 +1,6 @@
 import random
 import unittest
+
 from cryptanalysis.prng import MersenneTwister
 
 
