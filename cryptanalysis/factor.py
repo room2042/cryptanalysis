@@ -4,10 +4,119 @@ import random
 from cryptanalysis.utils import ceildiv, isqrt, lcm
 
 
+small_primes = {2, 3, 5, 7}
+
+
+def rabin_miller(n, k=64):
+    """
+    Test if a number ``n`` is prime.
+
+    This uses the Rabin--Miller primality test.
+    If ``n`` is composite then the test declares ``n`` probably prime with a
+    probability of at most :math:`2^{-2k}`.
+
+    :param int n: the number to test
+    :param int k: the certainty, the larger ``k``, the more certain that ``n``
+                  is prime if indicated by the algorithm
+    :returns: ``False`` if not a prime, ``True`` if *probably* a prime
+    :rtype: bool
+    """
+    if n <= 1:
+        return False
+
+    def iscomposite(a, d, s, n):
+        """
+        Test if ``n`` is a composite.
+
+        :returns: ``True`` if ``n`` is guaranteed composite, ``False`` if ``n``
+                  is probably a prime
+        :rtype: bool
+        """
+        x = pow(a, d, n)
+        if x == 1:
+            return False
+        for _ in range(s):
+            if x == n-1:
+                return False
+            x = pow(x, 2, n)
+        return True
+
+    # write (n - 1) == 2**s * d
+    d = n - 1
+    s = 0
+    while d & 0x1 == 0:
+        d >>= 1
+        s += 1
+
+    # deterministic special cases
+    # see https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
+    if n < 2047:
+        return not iscomposite(2, d, s, n)
+    if n < 1373653:
+        return not any(iscomposite(a, d, s, n) for a in (2, 3))
+    if n < 9080191:
+        return not any(iscomposite(a, d, s, n) for a in (31, 73))
+    if n < 25326001:
+        return not any(iscomposite(a, d, s, n) for a in (2, 3, 5))
+    if n < 3215031751:
+        return not any(iscomposite(a, d, s, n) for a in (2, 3, 5, 7))
+    if n < 4759123141:
+        return not any(iscomposite(a, d, s, n) for a in (2, 7, 61))
+    if n < 1122004669633:
+        return not any(iscomposite(a, d, s, n) for a in (2, 13, 23, 1662803))
+    if n < 2152302898747:
+        return not any(iscomposite(a, d, s, n) for a in (2, 3, 5, 7, 11))
+    if n < 3474749660383:
+        return not any(iscomposite(a, d, s, n) for a in (2, 3, 5, 7, 11, 13))
+    if n < 341550071728321:
+        return not any(iscomposite(a, d, s, n)
+                       for a in (2, 3, 5, 7, 11, 13, 17))
+    if n < 3825123056546413051:
+        return not any(iscomposite(a, d, s, n)
+                       for a in (2, 3, 5, 7, 11, 13, 17, 19, 23))
+    if n < 318665857834031151167461:
+        return not any(iscomposite(a, d, s, n)
+                       for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37))
+    if n < 3317044064679887385961981:
+        return not any(iscomposite(a, d, s, n)
+                       for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
+                                 41))
+
+    # probabilistic test otherwise
+    for _ in range(k):
+        a = random.randint(2, n-2)
+        if iscomposite(a, d, s, n):
+            return False
+    return True
+
+
+def isprime(n, k=64):
+    """
+    Test if a number ``n`` is prime.
+
+    If ``n`` is composite then the test declares ``n`` probably prime with a
+    probability of at most :math:`2^{-2k}`.
+
+    :param int n: the number to test
+    :param int k: the certainty, the larger ``k``, the more certain that ``n``
+                  is prime if indicated by the algorithm
+    :returns: ``False`` if not a prime, ``True`` if *probably* a prime
+    :rtype: bool
+    """
+    if n <= 1:
+        return False
+
+    if n in small_primes:
+        return True
+
+    if any(n % p == 0 for p in small_primes):
+        return False
+
+    return rabin_miller(n, k)
+
+
 class Factor:
     """Factorize a positive number."""
-
-    small_primes = {2, 3, 5, 7}
 
     def __init__(self, n):
         """
@@ -82,7 +191,7 @@ class Factor:
         """Add a (composite) factor to factor into primes."""
         if cofactor == 1:
             return
-        elif self.isprime(cofactor):
+        elif isprime(cofactor):
             self.add_factor(cofactor)
         else:
             factor = Factor(cofactor)
@@ -174,7 +283,7 @@ class Factor:
 
         :param int max_number: the largest number to sieve for primes for
         """
-        max_prime = max(self.small_primes)
+        max_prime = max(small_primes)
         if max_number <= max_prime:
             return
 
@@ -182,7 +291,7 @@ class Factor:
         multiples = [False] * max_number
 
         # sieve the known primes out
-        for prime in self.small_primes:
+        for prime in small_primes:
             for i in range(2*prime, max_number, prime):
                 multiples[i] = True
 
@@ -194,97 +303,7 @@ class Factor:
             for j in range(2*i, max_number, i):
                 multiples[j] = True
 
-            self.small_primes.add(i)
-
-    def isprime(self, n, k=64):
-        """
-        Test if a number ``n`` is prime.
-
-        This uses the Rabin--Miller primality test.
-        If ``n`` is composite then the test declares ``n`` probably prime with
-        a probability of at most :math:`2^{-2k}`.
-
-        :param int n: the number to test
-        :param int k: the certainty, the larger ``k``, the more certain that
-                      ``n`` is prime if indicated by the algorithm
-        :returns: ``False`` if not a prime, ``True`` if *probably* a prime
-        :rtype: bool
-        """
-        if n <= 1:
-            return False
-
-        if n in self.small_primes:
-            return True
-
-        if any(n % p == 0 for p in self.small_primes):
-            return False
-
-        def iscomposite(a, d, s, n):
-            """
-            Test if ``n`` is a composite.
-
-            Returns True if n is guaranteed composite
-            Returns False if n is probably a prime"""
-            x = pow(a, d, n)
-            if x == 1:
-                return False
-            for _ in range(s):
-                if x == n-1:
-                    return False
-                x = pow(x, 2, n)
-            return True
-
-        # write (n - 1) == 2**s * d
-        d = n - 1
-        s = 0
-        while d & 0x1 == 0:
-            d >>= 1
-            s += 1
-
-        # deterministic special cases
-        # see https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
-        if n < 2047:
-            return not iscomposite(2, d, s, n)
-        if n < 1373653:
-            return not any(iscomposite(a, d, s, n) for a in (2, 3))
-        if n < 9080191:
-            return not any(iscomposite(a, d, s, n) for a in (31, 73))
-        if n < 25326001:
-            return not any(iscomposite(a, d, s, n) for a in (2, 3, 5))
-        if n < 3215031751:
-            return not any(iscomposite(a, d, s, n) for a in (2, 3, 5, 7))
-        if n < 4759123141:
-            return not any(iscomposite(a, d, s, n) for a in (2, 7, 61))
-        if n < 1122004669633:
-            return not any(iscomposite(a, d, s, n)
-                           for a in (2, 13, 23, 1662803))
-        if n < 2152302898747:
-            return not any(iscomposite(a, d, s, n)
-                           for a in (2, 3, 5, 7, 11))
-        if n < 3474749660383:
-            return not any(iscomposite(a, d, s, n)
-                           for a in (2, 3, 5, 7, 11, 13))
-        if n < 341550071728321:
-            return not any(iscomposite(a, d, s, n)
-                           for a in (2, 3, 5, 7, 11, 13, 17))
-        if n < 3825123056546413051:
-            return not any(iscomposite(a, d, s, n)
-                           for a in (2, 3, 5, 7, 11, 13, 17, 19, 23))
-        if n < 318665857834031151167461:
-            return not any(iscomposite(a, d, s, n)
-                           for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
-                                     31, 37))
-        if n < 3317044064679887385961981:
-            return not any(iscomposite(a, d, s, n)
-                           for a in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
-                                     31, 37, 41))
-
-        # probabilistic test otherwise
-        for _ in range(k):
-            a = random.randint(2, n-2)
-            if iscomposite(a, d, s, n):
-                return False
-        return True
+            small_primes.add(i)
 
     def isfactored(self):
         """
@@ -294,7 +313,7 @@ class Factor:
         """
         if self.cofactor == 1:
             return True
-        if self.isprime(self.cofactor):
+        if isprime(self.cofactor):
             self.add_factor(self.cofactor)
             return True
         return False
@@ -378,7 +397,7 @@ class Factor:
         n = self.cofactor
 
         self.sieve(bound)
-        primes = sorted(self.small_primes)
+        primes = sorted(small_primes)
 
         while tries > 0:
             tries -= 1
@@ -406,8 +425,8 @@ class Factor:
 
         :param int max_prime: the largest prime to sieve for
         """
-        if max(self.small_primes) < max_prime:
+        if max(small_primes) < max_prime:
             self.sieve(max_prime)
-        for factor in self.small_primes:
+        for factor in small_primes:
             while (self.cofactor % factor) == 0:
                 self.add_factor(factor)

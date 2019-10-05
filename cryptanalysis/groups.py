@@ -4,7 +4,7 @@ import os
 import random
 
 from cryptanalysis.utils import ceildiv, isqrt, modinv, legendre, crt, crt_pow
-from cryptanalysis.factor import Factor
+from cryptanalysis.factor import Factor, isprime
 
 
 class GenericGroup:
@@ -594,7 +594,7 @@ class RSAGroup(MultiplicativeGroup):
             q = (pq_sum - pq_difference) // 2
             p = self.n // q
 
-            if not self.factor.isprime(q) or not self.factor.isprime(p):
+            if not isprime(q) or not isprime(p):
                 raise ValueError('the value {} cannot equal phi'.format(phi))
             self.factor.add_factor(q)
             self.factor.add_factor(p)
@@ -810,20 +810,18 @@ class SchnorrGroup(MultiplicativeGroup):
 
         while True:
             p = q = 4  # initalize with a composite number
-            factor = Factor(q)
-            while not factor.isprime(q):
+            while not isprime(q):
                 U = int.from_bytes(os.urandom((N+7) // 8), byteorder='big')
                 U %= (1 << N-1)
                 U |= (1 << N-1)  # U.bit_length() = N
                 q = U + 1 - (U % 2)  # q is odd
-                factor = Factor(q)
 
             for i in range(4*L):
                 X = int.from_bytes(os.urandom((L+7) // 8), byteorder='big')
                 X %= (1 << L-1)
                 X |= (1 << L-1)  # X.bit_length() = L
                 p = X - (X % (2*q)) + 1  # p = 1 (mod 2q)
-                if p.bit_length() >= L and factor.isprime(p):
+                if p.bit_length() >= L and isprime(p):
                     self.__init__(p, q)
                     return (p, q)
 

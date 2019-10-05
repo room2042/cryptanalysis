@@ -76,10 +76,9 @@ except ImportError:
         :rtype: int
         :raises ValueError: if ``y`` is not an odd prime
         """
-        from cryptanalysis.factor import Factor
+        from cryptanalysis.factor import isprime
 
-        f = Factor(y)
-        if y <= 2 or not f.isprime(y):
+        if y <= 2 or not isprime(y):
             raise ValueError('y needs to be prime and y >= 3')
 
         return jacobi(x, y)
