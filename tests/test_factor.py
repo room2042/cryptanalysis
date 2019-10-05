@@ -1,4 +1,5 @@
 import unittest
+
 from cryptanalysis.factor import Factor
 
 
