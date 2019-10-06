@@ -1,11 +1,12 @@
 import setuptools
+from cryptanalysis import __version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="cryptanalysis",
-    version="2.0.0",
+    version=__version__,
     author="room2042",
     description="Package for simple cryptanalysis during CTFs",
     long_description=long_description,
