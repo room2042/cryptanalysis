@@ -106,10 +106,50 @@ class Factor:
             lambda_ = lcm(lambda_, lambda_p)
         return lambda_
 
-    def phi(self):
-        """
+    def phi(self, phi=None):
+        r"""
         Return the result of the Euler totient function on the factorization.
+
+        .. math::
+
+            \phi(n) = \prod_{p^k | n} p^{k-1} (p - 1)
+
+        If ``phi`` is not ``None``, factor ``n`` using the order of the group.
+        For a description of the algorithm, see
+        https://math.stackexchange.com/a/651668.
+
+        :param phi: if not ``None``, set the order of the group to ``phi``
+        :type phi: int or None
+        :returns: the number of positive integers relatively prime to ``n``
+        :rtype: int
         """
+        if phi is not None:
+            # factor n using phi
+            # first, factor for squares
+            n = self.cofactor()
+            gcd = math.gcd(phi, n)
+            factor = Factor(gcd)
+            factor.run()
+            for p, k in factor.factors.items():
+                for m in range(k+1, 1, -1):
+                    if n % pow(p, m) == 0:
+                        self.add_factor(p, k=m)
+                        break
+
+            if not self.isfactored():
+                # next, factor for non-squares
+                n = self.cofactor()
+                factor = Factor(phi)
+                for divisor in factor.divisors():
+                    if n % (divisor + 1) == 0:
+                        self.add_factor(divisor + 1)
+                        n //= divisor + 1
+
+                # the number should now be fully factored
+                if n != 1:
+                    raise ValueError(f"phi({self.n}) cannot equal {phi}")
+
+        # compute phi from the factors of n
         self.run()
         phi = 1
         for p, k in self.factors.items():

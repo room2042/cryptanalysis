@@ -35,6 +35,30 @@ class FactorTestCase(unittest.TestCase):
                          self.factor.phi())
 
 
+class PhiTestCase(unittest.TestCase):
+    def test_phi(self):
+        factor = Factor(11 * 23)
+        factor.phi(220)
+        self.assertEqual(factor.factors, {11: 1, 23: 1})
+
+        factor = Factor(11**2 * 23**3)
+        factor.phi(1280180)
+        self.assertEqual(factor.factors, {11: 2, 23: 3})
+
+        factor = Factor(2 * 3 * 5 * 7 * 11 * 13)
+        factor.phi(5760)
+        self.assertEqual(factor.factors, {2: 1, 3: 1, 5: 1, 7: 1, 11: 1,
+                                          13: 1})
+
+        factor = Factor(2**8 * 3**2)
+        factor.phi(768)
+        self.assertEqual(factor.factors, {2: 8, 3: 2})
+
+        factor = Factor(3**3 * 5**2)
+        factor.phi(360)
+        self.assertEqual(factor.factors, {3: 3, 5: 2})
+
+
 class FermatTestCase(unittest.TestCase):
     def test_fermat(self):
         # test even n
