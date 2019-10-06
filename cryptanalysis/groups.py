@@ -261,15 +261,19 @@ class MultiplicativeGroup(GenericGroup):
 
         return self._exponent
 
-    def order(self):
+    def order(self, phi=None):
         """
         Return the number of elements in the group.
 
+        If ``phi`` is not ``None``, factor ``n`` using the order of the group.
+
+        :param phi: if not ``None``, set the order of the group as ``phi``
+        :type phi: int or None
         :returns: the order of the group
         :rtype: int
         """
         if self._order is None:
-            self._order = self.factor.phi()
+            self._order = self.factor.phi(phi)
 
         return self._order
 
@@ -590,9 +594,9 @@ class RSAGroup(MultiplicativeGroup):
     def q(self, q):
         self.p = q
 
-    def phi(self, phi=None):
+    def order(self, phi=None):
         """
-        Get or set the order of the group.
+        Return the number of elements in the group.
 
         If ``phi`` is not ``None``, factor ``n`` using the order of the group.
         This algorithm to factor ``n`` is described in [RSA78]_.
@@ -602,21 +606,23 @@ class RSAGroup(MultiplicativeGroup):
         :returns: the order of the group
         :rtype: int
         """
-        if phi is None:
-            return self.order()
+        if phi is not None:
+            # factor n so we can compute phi again
+            pq_sum = self.n - phi + 1
+            pq_difference = isqrt(pq_sum**2 - 4*self.n)
+            q = (pq_sum - pq_difference) // 2
+            p = self.n // q
 
-        # factor n so we can compute phi again
-        pq_sum = self.n - phi + 1
-        pq_difference = isqrt(pq_sum**2 - 4*self.n)
-        q = (pq_sum - pq_difference) // 2
-        p = self.n // q
+            if not self.factor.isprime(q) or not self.factor.isprime(p):
+                raise ValueError('the value {} cannot equal phi'.format(phi))
+            self.factor.add_factor(q)
+            self.factor.add_factor(p)
 
-        if not self.factor.isprime(q) or not self.factor.isprime(p):
-            raise ValueError('the value {} cannot equal phi'.format(phi))
-        self.factor.add_factor(q)
-        self.factor.add_factor(p)
+        self._order = self.factor.phi()
 
-        return self.order()
+        return self._order
+
+    phi = order
 
     @property
     def d(self):
