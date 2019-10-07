@@ -164,6 +164,25 @@ class CompositeGroupTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.G2.generator(11**2)
 
+    def test_solve(self):
+        self.assertEqual(self.G1.solve(7, 3), {self.G1(145)})
+        self.assertEqual(self.G1.solve(11, 22), {self.G1(2), self.G1(25),
+                                                 self.G1(48), self.G1(71),
+                                                 self.G1(94), self.G1(117),
+                                                 self.G1(140), self.G1(163),
+                                                 self.G1(186), self.G1(209),
+                                                 self.G1(232)})
+        with self.assertRaises(ZeroDivisionError):
+            self.G1.solve(11, 3)
+
+    def test_dlog(self):
+        self.assertEqual(self.G1.dlog(89, self.g1), 5)
+        self.assertEqual(self.G1.dlog(89, self.g1,
+                                      self.G1.exhaustive_search), 5)
+        self.assertEqual(self.G1.dlog(89, self.g1, self.G1.pohlighellman), 5)
+        self.assertEqual(self.G2.dlog(3125, self.g2, self.G2.pohlighellman), 5)
+        self.assertEqual(self.G3.dlog(9571, self.G3(65537)), 8)
+
     def test_element_pow(self):
         self.assertEqual(self.g1 ** 5, 89)
         self.assertEqual(self.g2 ** 5, 3125)
@@ -178,14 +197,6 @@ class CompositeGroupTestCase(unittest.TestCase):
         self.assertEqual(self.G2(2).order(), 58190)
         self.assertEqual(self.G2(125).order(), 58190)
         self.assertEqual(self.G2(1253200).order(), 10)
-
-    def test_element_dlog(self):
-        self.assertEqual(self.G1.dlog(89, self.g1), 5)
-        self.assertEqual(self.G1.dlog(89, self.g1,
-                                      self.G1.exhaustive_search), 5)
-        self.assertEqual(self.G1.dlog(89, self.g1, self.G1.pohlighellman), 5)
-        self.assertEqual(self.G2.dlog(3125, self.g2, self.G2.pohlighellman), 5)
-        self.assertEqual(self.G3.dlog(9571, self.G3(65537)), 8)
 
 
 class RSAGroupTestCase(unittest.TestCase):

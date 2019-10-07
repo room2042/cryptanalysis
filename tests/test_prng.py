@@ -1,7 +1,7 @@
 import random
 import unittest
 
-from cryptanalysis.prng import MersenneTwister
+from cryptanalysis.prng import MersenneTwister, MiddleSquareWeylSequence
 
 
 class MersenneTwisterTestCase(unittest.TestCase):
@@ -92,3 +92,58 @@ class MersenneTwisterTestCase(unittest.TestCase):
 
         for number in random_for_check:
             self.assertEqual(number, mt.get_random())
+
+
+class MiddleSquareWeylSequenceTestCase(unittest.TestCase):
+    def setUp(self):
+        self.msws = MiddleSquareWeylSequence()
+
+    def test_get_random(self):
+        # From [Wid19]_.
+        msws = MiddleSquareWeylSequence(0x0000000100000001)
+        self.assertEqual(msws.get_random(), 0x00000001)
+        self.assertEqual(msws.get_random(), 0x00000004)
+        self.assertEqual(msws.get_random(), 0x0000001b)
+        self.assertEqual(msws.get_random(), 0x00000406)
+        self.assertEqual(msws.get_random(), 0x00170a61)
+        self.assertEqual(msws.get_random(), 0xf765b52a)
+        self.assertEqual(msws.get_random(), 0x68d57352)
+        self.assertEqual(msws.get_random(), 0x0aafc03f)
+        self.assertEqual(msws.get_random(), 0xf461cd1e)
+        self.assertEqual(msws.get_random(), 0xfbe33cc0)
+        self.assertEqual(msws.get_random(), 0x808d47e0)
+        self.assertEqual(msws.get_random(), 0x230dc324)
+        self.assertEqual(msws.get_random(), 0x93202f86)
+
+    def test_recover_state(self):
+        random_number = 6247
+        numbers_to_solve_with = 5
+        msws = MiddleSquareWeylSequence()
+        for _ in range(random_number):
+            msws.get_random()
+
+        # fill the list of random numbers to try to solve with
+        r_list = []
+        for _ in range(numbers_to_solve_with):
+            r_list.append(msws.get_random())
+
+        correct_state = msws.get_state()
+
+        recovered = MiddleSquareWeylSequence(msws.s)
+        states = recovered.recover_state(r_list)
+
+        # check if one of the recovered states is the correct one
+        correct_state_found = False
+        for state in states:
+            # reset states
+            msws.set_state(correct_state)
+            recovered.set_state(state)
+
+            # check if the next 10 random numbers are the same
+            if all(msws.get_random() == recovered.get_random()
+                   for _ in range(10)):
+                correct_state_found = True
+                break
+
+        self.assertTrue(correct_state_found)
+        self.assertEqual(msws, recovered)  # check if __eq__ is correct

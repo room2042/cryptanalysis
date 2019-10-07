@@ -2,6 +2,7 @@ import operator
 import os
 
 from cryptanalysis import modinv
+from cryptanalysis.groups import MultiplicativeGroup
 
 
 class MersenneTwister:
@@ -118,7 +119,7 @@ class MersenneTwister:
             random.setstate(mt.get_python_state())
 
         :return: the MT state compatible for usage with Python's
-                 :class:`random`
+                 :mod:`random`
         :rtype: tuple(int, list(int), None)
         :raises ValueError: if the MT variant is incompatible with Python
         """
@@ -390,6 +391,196 @@ class MersenneTwister:
     def get_random(self):
         """
         Update the Mersenne Twister state and output a random number.
+
+        :returns: a pseudorandom number
+        :rtype: int
         """
         self.update_state()
         return self.temper(self.state[-1])
+
+
+class MiddleSquareWeylSequence:
+    """
+    Middle Square Weyl Sequence implementation.
+
+    See [Wid19]_ for the proposed version of this PRNG and see
+    https://crypto.stackexchange.com/a/62755 for more information on attacking
+    the PRNG.
+    """
+    # Helper functions
+    def _u32(self, x): return x % (1 << 32)
+
+    def _u64(self, x): return x % (1 << 64)
+
+    _low = _u32
+
+    def _high(self, x): return x >> 32
+
+    def __init__(self, s=0xb5ad4eceda1ce2a9):
+        """
+        Initialize a Middle Square Weyl Sequence object.
+
+        The :abbr:`MSWS (Middle Square Weyl Sequence)` generates 32-bit
+        pseudorandom numbers.
+
+        :param int s: the initialization value ``s``
+        """
+        self.x = 0
+        self.w = 0
+        self.s = s
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+
+        return self.x == other.x and self.w == other.w and self.s == other.s
+
+    def get_state(self):
+        """
+        Return the state of the Middle Square Weyl Sequence.
+
+        :return: the state of the Middle Square Weyl Sequence
+        :rtype: tuple(int, int, int)
+        """
+        return (self.x, self.w, 0)
+
+    def set_state(self, state):
+        """
+        Set the state of the Middle Square Weyl Sequence.
+
+        The state is a tuple consisting of the values ``x``, ``w``, and the
+        number of already generated random values without updating the values
+        ``x`` and ``w``.
+
+        :param state: the state
+        :type state: tuple(int, int, int)
+        """
+        self.x, self.w, index = state
+        for _ in range(index):
+            # ``index`` denotes the numbers of already generated random values
+            self.get_random()
+
+    def update_state(self):
+        """Generate the next state of the Middle Square Weyl Sequence."""
+        self.w = self._u64(self.w + self.s)
+        self.x = self._u64(self.x * self.x + self.w)
+        self.x = (self._low(self.x) << 32) | self._high(self.x)
+
+    def recover_state(self, r_list):
+        r"""
+        Recover the internal state of the Middle Square Weyl Sequence.
+
+        Let :math:`x_i = (a_i, b_i)`, :math:`w_i = (c_i, d_i)`, and
+        :math:`s = (s_{\text{low}}, s_{\text{high}})`, where :math:`a_i`
+        represent the most significant 32 bits and :math:`b_i` the least
+        significant 32 bits of :math:`x_i`, similarly for :math:`c_i` and
+        :math:`d_i` and :math:`s_{\text{low}}` and :math:`s_{\text{high}}`. We
+        see that
+
+        .. math::
+            b_i &= r_i \pmod{2^{32}}
+
+            d_i &= d_0 + i \cdot s_{\text{low}} \pmod{2^{32}}
+
+            c_i &= c_0 + i \cdot s_{\text{high}} + e_{d_i} \pmod{2^{32}}
+                    \quad\text{where $0 \le e_{d_i} \le i$}
+
+            x_{i+1} &= (x_i^{\,2} + w_i \bmod{2^{64}})
+                    \mathrel{\text{rotate-left}} 32
+
+            a_{i+1} &= b_i^{\,2} + d_i \pmod{2^{32}}
+
+            b_{i+1} &= \underbrace{2 a_i b_i +
+                    \lfloor b_i^{\,2} / 2^{32}\rfloor}_{x_i^{\,2}} +
+                    \underbrace{c_i}_{w_i} + e_{a_i} \pmod{2^{32}}
+                    \quad\text{where $e_{a_i} \in \{0, 1\}$}
+
+                &= 2 a_i b_i + c_0 + \lfloor b_i^{\,2} / 2^{32}\rfloor +
+                    i \cdot s_{\text{high}} + e_{a_i} + e_{d_i} \pmod{2^{32}}
+
+                &= 2 b_{i-1}^{\,2} b_i + 2 d_{i-1} b_i + c_0 +
+                    \lfloor b_i^{\,2} / 2^{32}\rfloor +
+                    i \cdot s_{\text{high}} + e_{a_i} + e_{d_i} \pmod{2^{32}}
+
+                &= 2 d_0 b_i + c_0 + \underbrace{2 b_{i-1}^{\,2} b_i +
+                    2 (i-1) s_{\text{low}} b_i +
+                    \lfloor b_i^{\,2} / 2^{32}\rfloor +
+                    i \cdot s_{\text{high}}}_{h_i} +
+                    e_{a_i} + e_{d_i} \pmod{2^{32}}
+
+        From this we can solve for :math:`d_0`,
+
+        .. math::
+            b_3 - b_2 - (h_2 - h_1) - \{-1, 0, 1, 2\} =
+                2 (b_2 - b_1) d_0 \pmod{2^{32}}
+
+        and solve for :math:`c_0`, i.e.,
+
+        .. math::
+            c_0 = b_{i+1} - 2b_{i}d_0 - e_{a_i} - e_{d_i} \pmod{2^{32}}.
+
+        :param r_list: list of sequential random numbers
+        :type r_list: list(int)
+        :returns: a list containing the (potential) state(s)
+        :rtype: list()
+        :raises ValueError: if too few random numbers are provided
+        """
+        if len(r_list) < 4:
+            raise ValueError('more sequential random numbers required')
+
+        b = r_list
+
+        G = MultiplicativeGroup(1 << 32)
+
+        def h(i):
+            h = 2*(b[i-1]**2)*b[i] + 2*(i-1)*self._low(self.s)*b[i] + \
+                self._high(b[i]**2) + i*self._high(self.s)
+            return h
+
+        def recover_c0(d0):
+            for e in range(3):
+                c0 = b[2] - 2*b[1]*d0 - h(1) - e
+                c0, d0 = int(c0), int(d0)
+
+                # Compute the state from c0 and d0
+                x = (self._u32(b[0]**2 + d0) << 32) + b[1]
+                w = self._u64((c0 << 32) + d0)
+
+                # Check if we have a found a corect sequence
+                msws = MiddleSquareWeylSequence(self.s)
+                msws.set_state((x, w, 0))
+                if all(r_list[i] == msws.get_random()
+                       for i in range(2, len(r_list))):
+                    return (x, w, len(r_list)-2)
+
+            raise ValueError(f'cannot recover the state from d0 = {d0:08x}')
+
+        state = []
+        # Try all possible carries ``e``
+        for e in [-1, 0, 1, 2]:
+            try:
+                # Solve for several values d0
+                d0_set = G.solve(2*(b[2] - b[1]),
+                                 b[3] - b[2] - (h(2) - h(1)) - e)
+                for d0 in d0_set:
+                    try:
+                        state.append(recover_c0(d0))
+                    except ValueError:
+                        pass
+            except ZeroDivisionError:
+                pass
+
+        if len(state) == 0:
+            raise ValueError('more sequential random numbers required')
+
+        return state
+
+    def get_random(self):
+        """
+        Update the MSWS state and output a random number.
+
+        :returns: a pseudorandom number
+        :rtype: int
+        """
+        self.update_state()
+        return self._low(self.x)

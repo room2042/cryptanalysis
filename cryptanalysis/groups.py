@@ -330,6 +330,27 @@ class MultiplicativeGroup(GenericGroup):
                     break
         return g
 
+    def solve(self, a, b):
+        """
+        Return the solutions to the equation ax = b.
+
+        :param int a: the value ``a``
+        :param int b: the value ``b``
+        :returns: solutions to the equation ax = b
+        :rtype: set(~MultiplicativeGroup.GroupElement)
+        :raises ZeroDivisionError: if no such solution exists
+        """
+        n = self.n
+        gcd = math.gcd(a, n)
+        if b % gcd == 0:
+            a //= gcd
+            b //= gcd
+            n //= gcd
+            x = b * self(a)**-1
+            return {x + i*n for i in range(gcd)}
+        else:
+            raise ZeroDivisionError('no solution exists')
+
     def pohlighellman(self, h, base):
         r"""
         Determine the discrete log using the Pohlig--Hellman algorithm.
