@@ -20,3 +20,6 @@ References
 .. [Wie90] Wiener. :title:`Cryptanalysis of short RSA secret exponents`
    (1990).
    :doi:`10.1109/18.54902`
+
+.. [Wid19] Widynski. :title:`Middle Square Weyl Sequence RNG` (2019).
+   URL: https://arxiv.org/abs/1704.00358

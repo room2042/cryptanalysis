@@ -18,8 +18,10 @@ With ``cryptanalysis`` you can easily
   * RSA groups
   * Schnorr groups
 
-* break the Mersenne Twister :doc:`pseudorandom number generator
-  <ref/prng>`
+* break weak :doc:`pseudorandom number generators <ref/prng>`
+
+  * Mersenne Twister (``mt19937``, ``mt19937-64``, and ``mt11213b``)
+  * Middle Square Weyl Sequence
 
 Quick Start
 -----------
