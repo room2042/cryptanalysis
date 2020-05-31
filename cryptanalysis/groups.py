@@ -8,7 +8,7 @@ from cryptanalysis.factor import Factor
 
 
 class GenericGroup:
-    """Represents a generic group with generic group algorithms"""
+    """Represent a generic group with generic group algorithms"""
 
     def __init__(self):
         """Initialize a generic group."""

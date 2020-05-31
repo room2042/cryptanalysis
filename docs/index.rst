@@ -37,7 +37,7 @@ Install the package using ``pip``:
 A simple script to compute the discrete logarithm of an element
 :math:`h = g^x \pmod{n}` can be created as follows.
 
-.. code-block:: python3
+.. testcode::
 
    from cryptanalysis.groups import MultiplicativeGroup
 
@@ -56,7 +56,7 @@ algorithm with respect to base ``g``, i.e., :math:`\log_g g^x`.
 
 We can also do simple attacks on RSA, for example Wiener's attack.
 
-.. code-block:: pycon
+.. doctest::
 
    >>> from cryptanalysis.groups import RSAGroup
    >>> n = 1097 * 1259

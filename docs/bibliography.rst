@@ -2,7 +2,7 @@ References
 ==========
 
 .. [Bon99] Boneh. :title:`Twenty Years of Attacks on the RSA
-   Cryptosystem`
+   Cryptosystem` (1999).
    URL: https://www.ams.org/journals/notices/199902/boneh.pdf
 
 .. [BD99] Boneh and Durfee. :title:`Cryptanalysis of RSA with private
