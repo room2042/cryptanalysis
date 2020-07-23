@@ -281,13 +281,8 @@ class MultiplicativeGroup(GenericGroup):
         :rtype: list(int)
         """
         if self._divisors is None:
-            divisors = {1}
             factor = Factor(self.exponent())
-            factor.run()
-            for p, k in factor.factors.items():
-                divisors |= {d * p**e for e in range(1, k+1) for d in divisors}
-
-            self._divisors = sorted(divisors)
+            self._divisors = factor.divisors()
 
         return self._divisors
 
