@@ -3,7 +3,7 @@ import math
 import os
 import random
 
-from cryptanalysis import ceildiv, isqrt, modinv, legendre, crt, crt_pow
+from cryptanalysis.utils import ceildiv, isqrt, modinv, legendre, crt, crt_pow
 from cryptanalysis.factor import Factor
 
 

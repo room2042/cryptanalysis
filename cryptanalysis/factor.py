@@ -1,7 +1,7 @@
 import math
 import random
 
-from cryptanalysis import ceildiv, isqrt, lcm
+from cryptanalysis.utils import ceildiv, isqrt, lcm
 
 
 class Factor:

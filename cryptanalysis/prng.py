@@ -1,7 +1,7 @@
 import operator
 import os
 
-from cryptanalysis import modinv
+from cryptanalysis.utils import modinv
 from cryptanalysis.groups import MultiplicativeGroup
 
 
