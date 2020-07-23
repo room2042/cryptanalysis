@@ -229,7 +229,8 @@ class MultiplicativeGroup(GenericGroup):
             for p, k in n.items():
                 self.n *= p**k
             self.factor = Factor(self.n)
-            self.factor.factors = n
+            for p, k in n.items():
+                self.factor.add_factor(p, k)
         elif type(n) is list:
             self.n = 1
             for p in n:
