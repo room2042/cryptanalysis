@@ -289,9 +289,9 @@ class Factor:
             b = isqrt(b2)
 
         factor1 = math.gcd(self.cofactor(), a - b)
-        factor2 = math.gcd(self.cofactor(), a + b)
-
         self.add_cofactor(factor1)
+
+        factor2 = math.gcd(self.cofactor(), a + b)
         self.add_cofactor(factor2)
 
     def pollard_p1(self, bound, tries=math.inf):
