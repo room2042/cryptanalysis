@@ -20,6 +20,7 @@ class Factor:
             raise ValueError('n should be a positive number bigger than 2')
         self.n = n
         self.factors = dict()
+        self._divisors = None
 
     def __repr__(self):
         if self.isfactored():
@@ -68,6 +69,22 @@ class Factor:
             n *= p**k
 
         return self.n // n
+
+    def divisors(self):
+        """
+        Return all divisors of the number.
+
+        :returns: a sorted list of possible divisors
+        :rtype: list(int)
+        """
+        if self._divisors is None:
+            self.run()
+            divisors = {1}
+            for p, k in self.factors.items():
+                divisors |= {d * p**e for e in range(1, k+1) for d in divisors}
+            self._divisors = sorted(divisors)
+
+        return self._divisors
 
     def carmichael(self):
         """
