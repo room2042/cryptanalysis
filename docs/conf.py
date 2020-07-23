@@ -22,7 +22,6 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 from cryptanalysis import __version__
-from packaging import version
 
 # -- General configuration ------------------------------------------------
 
