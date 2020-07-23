@@ -1,6 +1,6 @@
 import unittest
 
-from cryptanalysis import isqrt, lcm, modinv, legendre, jacobi, crt_pow
+from cryptanalysis.utils import isqrt, lcm, modinv, legendre, jacobi, crt_pow
 
 
 class SimpleTestCase(unittest.TestCase):

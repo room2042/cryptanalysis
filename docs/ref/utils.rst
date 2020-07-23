@@ -1,4 +1,4 @@
 Generic Helper Functions
 ========================
 
-.. automodule:: cryptanalysis
+.. automodule:: cryptanalysis.utils
