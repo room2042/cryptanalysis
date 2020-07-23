@@ -11,9 +11,11 @@ def rabin_miller(n, k=64):
     """
     Test if a number ``n`` is prime.
 
-    This uses the Rabin--Miller primality test.
     If ``n`` is composite then the test declares ``n`` probably prime with a
     probability of at most :math:`2^{-2k}`.
+
+    For more information about this primality test, see
+    https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test.
 
     :param int n: the number to test
     :param int k: the certainty, the larger ``k``, the more certain that ``n``
