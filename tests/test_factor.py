@@ -42,17 +42,17 @@ class FermatTestCase(unittest.TestCase):
         factor = Factor(n)
         factor.fermat()
 
-        self.assertIn(2, factor.factors)
-        self.assertIn(17, factor.factors)
-        self.assertIn(19, factor.factors)
+        self.assertEqual(factor.factors[2], 1)
+        self.assertEqual(factor.factors[17], 1)
+        self.assertEqual(factor.factors[19], 1)
 
         # test perfect square
         n = 15*15
         factor = Factor(n)
         factor.fermat()
 
-        self.assertIn(3, factor.factors)
-        self.assertIn(5, factor.factors)
+        self.assertEqual(factor.factors[3], 2)
+        self.assertEqual(factor.factors[5], 2)
 
         # test ratio
         p = 670782728334373
@@ -60,8 +60,8 @@ class FermatTestCase(unittest.TestCase):
         factor = Factor(p * q)
         factor.fermat((1, 2))
 
-        self.assertIn(p, factor.factors)
-        self.assertIn(q, factor.factors)
+        self.assertEqual(factor.factors[p], 1)
+        self.assertEqual(factor.factors[q], 1)
 
         # test finished factoring
         factor.fermat((1, 1))
@@ -72,8 +72,8 @@ class FermatTestCase(unittest.TestCase):
         factor = Factor(p * q)
         factor.fermat()
 
-        self.assertIn(p, factor.factors)
-        self.assertIn(q, factor.factors)
+        self.assertEqual(factor.factors[p], 1)
+        self.assertEqual(factor.factors[q], 1)
 
 
 class PollardTestCase(unittest.TestCase):
