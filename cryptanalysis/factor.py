@@ -13,15 +13,36 @@ class Factor:
         """
         Initialize to factor the integer ``n``.
 
-        :param int n: the number to factor
-        :raises ValueError: if ``n < 2``
+        :param n: the number to factor
+        :raises ValueError: if ``n`` is an unsupported type or value
         """
-        if n < 2:
-            raise ValueError('n should be a positive number bigger than 2')
-        self.n = n
-        self.cofactor = n
         self.factors = dict()
         self._divisors = None
+
+        if isinstance(n, int):
+            if n < 2:
+                raise ValueError('n should be a positive number bigger than 2')
+
+            self.n = n
+            self.cofactor = n
+        elif isinstance(n, dict):
+            self.factors = n
+            self.cofactor = 1
+            self.n = 1
+            for p, k in n.items():
+                self.n *= p**k
+        elif isinstance(n, list):
+            self.n = 1
+            self.cofactor = 0  # required for add_factor() method
+            for p in n:
+                self.n *= p
+                self.add_factor(p)
+            self.cofactor = 1
+        else:
+            raise ValueError('the type of n is unsupported')
+
+    def __int__(self):
+        return self.n
 
     def __str__(self):
         return '{} == {}'.format(self.n, repr(self))
