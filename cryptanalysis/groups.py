@@ -221,25 +221,8 @@ class MultiplicativeGroup(GenericGroup):
         """
         super().__init__()
 
-        if type(n) is int:
-            self.n = n
-            self.factor = Factor(self.n)
-        elif type(n) is dict:
-            self.n = 1
-            for p, k in n.items():
-                self.n *= p**k
-            self.factor = Factor(self.n)
-            for p, k in n.items():
-                self.factor.add_factor(p, k)
-        elif type(n) is list:
-            self.n = 1
-            for p in n:
-                self.n *= p
-            self.factor = Factor(self.n)
-            for p in n:
-                self.factor.add_factor(p)
-        else:
-            raise ValueError('n is not of a valid type')
+        self.factor = Factor(n)
+        self.n = int(self.factor)
 
         self._divisors = None
         self.identity = self(1)
