@@ -5,22 +5,15 @@ from cryptanalysis.factor import Factor
 
 class FactorTestCase(unittest.TestCase):
     def setUp(self):
-        self.factors = {
-                2: 5,
-                7: 3,
-                11: 2,
-                17: 2,
-                63178764221: 1,
-                161987488532305421: 1,
-            }
-        n = 1
-        for p, k in self.factors.items():
-            n *= p**k
-
-        self.factor = Factor(n)
-        self.factor.smooth()
-        while not self.factor.isfactored():
-            self.factor.brent()
+        factors = {
+            2: 5,
+            7: 3,
+            11: 2,
+            17: 2,
+            63178764221: 1,
+            161987488532305421: 1,
+        }
+        self.factor = Factor(factors)
 
     def test_negative_number(self):
         with self.assertRaises(ValueError):
@@ -102,25 +95,44 @@ class FermatTestCase(unittest.TestCase):
 
 class PollardTestCase(unittest.TestCase):
     def setUp(self):
-        self.factors = {
-                479971: 1,
-                480043: 1,
-                480059: 1,
-                480061: 1,
-            }
-        n = 1
-        for p, k in self.factors.items():
-            n *= p**k
+        self.factor_factors = [
+            {479971: 1, 480043: 1, 480059: 1, 480061: 1},
+            {479909: 1, 479939: 1, 479951: 1},
+            {479909: 2, 479939: 1, 479951: 1},
+        ]
+        self.factor = []
+        for factors in self.factor_factors:
+            n = 1
+            for p, k in factors.items():
+                n *= p**k
 
-        self.factor = Factor(n)
+            self.factor.append(Factor(n))
 
     def test_pollard_p1(self):
-        while not self.factor.isfactored():
-            self.factor.pollard_p1(128)
+        factor = self.factor[0]
+        factors = self.factor_factors[0]
 
-        for p, k in self.factors.items():
-            self.assertIn(p, self.factor.factors)
-            self.assertEqual(k, self.factor.factors[p])
+        while not factor.isfactored():
+            factor.pollard_p1(128)
+
+        for p, k in factors.items():
+            self.assertIn(p, factor.factors)
+            self.assertEqual(k, factor.factors[p])
+
+    def test_pollard_rho(self):
+        for i in range(len(self.factor_factors)):
+            factor = self.factor[i]
+            factors = self.factor_factors[i]
+
+            while not factor.isfactored():
+                factor.pollard_rho(x0=3)
+
+            for p, k in factors.items():
+                self.assertIn(p, factor.factors)
+                self.assertEqual(k, factor.factors[p])
+
+        # test finished factoring
+        factor.pollard_rho()
 
 
 class SmoothTestCase(unittest.TestCase):
@@ -143,30 +155,6 @@ class SmoothTestCase(unittest.TestCase):
         for p, k in self.factors.items():
             self.assertIn(p, self.factor.factors)
             self.assertEqual(k, self.factor.factors[p])
-
-
-class BrentTestCase(unittest.TestCase):
-    def setUp(self):
-        self.factors = {
-                63178764221: 2,
-                161987488532305421: 1,
-            }
-        n = 1
-        for p, k in self.factors.items():
-            n *= p**k
-
-        self.factor = Factor(n)
-
-    def test_brent(self):
-        while not self.factor.isfactored():
-            self.factor.brent()
-
-        for p, k in self.factors.items():
-            self.assertIn(p, self.factor.factors)
-            self.assertEqual(k, self.factor.factors[p])
-
-        # test finished factoring
-        self.factor.brent()
 
 
 if __name__ == '__main__':

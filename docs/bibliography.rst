@@ -9,6 +9,13 @@ References
    key d less than N^{0.292}` (1999).
    :doi:`10.1007/3-540-48910-X_1`
 
+.. [Bre80] Brent. :title:`An improved Monte Carlo factorization algorithm`
+   (1980).
+   :doi:`10.1007/BF01933190`
+
+.. [Pol75] Pollard. :title:`A monte carlo method for factorization` (1975).
+   :doi:`10.1007/BF01933667`
+
 .. [RSA78] Rivest, Shamir, and Adleman. :title:`A method for obtaining
    digital signatures and public-key cryptosystems` (1978).
    :doi:`10.1145/359340.359342`

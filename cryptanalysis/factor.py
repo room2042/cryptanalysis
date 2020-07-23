@@ -179,7 +179,7 @@ class Factor:
                 if self.n.bit_length() >= 80:
                     print('factoring {} '
                           '(this might take a while)'.format(self.n))
-                self.brent()
+                self.pollard_rho()
 
     def add_factor(self, p, k=1):
         """Add a prime factor ``p`` with multiplicity ``k``."""
@@ -320,38 +320,6 @@ class Factor:
             return True
         return False
 
-    def brent(self):
-        """Brent's factorization algorithm."""
-        n = self.cofactor
-        if n <= 2:
-            return
-
-        y = random.randrange(1, n)
-        c = random.randrange(1, n)
-        m = random.randrange(1, n)
-        g, r, q = 1, 1, 1
-        while g == 1:
-            x = y
-            for i in range(r):
-                y = ((y*y) % n + c) % n
-            k = 0
-            while (k < r and g == 1):
-                ys = y
-                for i in range(min(m, r-k)):
-                    y = ((y*y) % n + c) % n
-                    q = q*(abs(x-y)) % n
-                g = math.gcd(q, n)
-                k = k + m
-            r = r*2
-        if g == n:
-            while True:
-                ys = ((ys*ys) % n + c) % n
-                g = math.gcd(abs(x-ys), n)
-                if g > 1:
-                    break
-
-        self.add_cofactor(g)
-
     def fermat(self, ratio=(1, 1)):
         """
         Fermat's factorization algorithm for known ratio of factors.
@@ -392,7 +360,15 @@ class Factor:
         """
         Pollard's :math:`p-1` factoring algorithm.
 
-        :param int bound: the smoothness bound
+        .. note::
+
+           Pollard's :math:`p-1` algorithm quickly finds factors :math:`f`
+           where :math:`f-1` is :math:`B`-powersmooth.
+           It does not preform well against `safe primes
+           <https://en.wikipedia.org/wiki/Safe_and_Sophie_Germain_primes>`_
+           (i.e., a prime :math:`q = 2p + 1` where :math:`p` is prime as well).
+
+        :param int bound: the smoothness bound :math:`B`
         :param tries: the maximum number of tries before giving up
         :type tries: int or math.inf
         """
@@ -405,9 +381,9 @@ class Factor:
             tries -= 1
             x = random.randrange(2, n)
 
-            gcd = math.gcd(x, n)
-            if gcd != 1:
-                self.add_cofactor(gcd)
+            factor = math.gcd(x, n)
+            if factor != 1:
+                self.add_cofactor(factor)
                 return
 
             for q in primes:
@@ -416,10 +392,75 @@ class Factor:
                 Q = pow(q, ceildiv(math.log(n), math.log(q)))
                 x = pow(x, Q, n)
 
-                gcd = math.gcd(x-1, n)
-                if gcd != 1:
-                    self.add_cofactor(gcd)
+                factor = math.gcd(x-1, n)
+                if factor != 1:
+                    self.add_cofactor(factor)
                     return
+
+    def pollard_rho(self, *, x0=None, c=1, m=100):
+        r"""
+        Pollard's :math:`\rho` factoring algorithm [Pol75]_.
+
+        This implementation is due a variant by Brent [Bre80]_. It features
+        Brent's collision finding algorithm instead of Floyd's collision
+        finding algorithm that was originally used by Pollard. Additionally,
+        the consecutive differences between two points are multiplied to lower
+        the required number of GCD computations.
+
+        .. note::
+
+           Pollard's :math:`\rho` algorithm is fast for finding small factors.
+           If the polynomial :math:`x^2 + c \pmod{n}` generates a random
+           sequence, the running time is :math:`\mathcal{O}(\sqrt{p})` for the
+           smallest prime factor :math:`p|n`.
+
+        :param x0: initial value to start the walk from. If set to None, a
+                   random start value will be chosen.
+        :type x0: int or None
+        :param int c: constant to use in the polynomial that generates the
+                      random sequence
+        :param int m: the minimum number of values to combine before computing
+                      the GCD. A higher value will speed up the computation,
+                      while setting this too high requires expensive
+                      backtracking.
+        :raises ValueError: if a bad value for ``c`` is chosen
+        """
+        n = self.cofactor
+
+        if c == 0 or c == -2:
+            return ValueError('bad value for constant c')
+
+        if n <= 1:
+            return
+
+        def f(x):
+            return (x**2 + c) % n
+
+        x0 = random.randrange(2, n) if x0 is None else x0
+        y, factor, r, q = x0, 1, 1, 1
+        while factor == 1:
+            x = y
+            for _ in range(r):
+                y = f(y)
+            k = 0
+            while k < r and factor == 1:
+                y_backtrack = y
+                for _ in range(min(m, r-k)):
+                    # combine values to compute the GCD once
+                    y = f(y)
+                    q = (q * (x - y)) % n
+                factor = math.gcd(q, n)
+                k += m
+            r *= 2
+
+        if factor == n:
+            while factor == 1:
+                y_backtrack = f(y_backtrack)
+                factor = math.factor(x - y_backtrack, n)
+            if factor == n:
+                return
+
+        self.add_cofactor(factor)
 
     def smooth(self, max_prime=1048573):
         """
