@@ -22,11 +22,16 @@ class Factor:
         self.factors = dict()
         self._divisors = None
 
+    def __str__(self):
+        return '{} == {}'.format(self.n, repr(self))
+
     def __repr__(self):
         if self.isfactored():
-            return '{} = {}'.format(self.n, self.factors)
+            return 'Factor({})'.format(self.factors)
         else:
-            return '{} containing {}'.format(self.n, self.factors)
+            factors = dict(self.factors)
+            factors[self.cofactor()] = 1
+            return 'Factor({})'.format(factors)
 
     def run(self, first_run=True):
         """
