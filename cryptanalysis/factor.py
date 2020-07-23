@@ -50,10 +50,10 @@ class Factor:
 
     def add_factor(self, p, k=1):
         """Add a prime factor ``p`` with multiplicity ``k``."""
-        try:
-            self.factors[p] += k
-        except KeyError:
-            self.factors[p] = k
+        if self.cofactor() % pow(p, k) != 0:
+            raise ValueError(f'{p}**{k} is not a factor of {self.cofactor()}')
+
+        self.factors[p] = self.factors.get(p, 0) + k
 
     def add_cofactor(self, cofactor):
         """Add a (composite) factor to factor into primes."""
