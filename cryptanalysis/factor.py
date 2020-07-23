@@ -19,6 +19,7 @@ class Factor:
         if n < 2:
             raise ValueError('n should be a positive number bigger than 2')
         self.n = n
+        self.cofactor = n
         self.factors = dict()
         self._divisors = None
 
@@ -30,7 +31,7 @@ class Factor:
             return 'Factor({})'.format(self.factors)
         else:
             factors = dict(self.factors)
-            factors[self.cofactor()] = 1
+            factors[self.cofactor] = 1
             return 'Factor({})'.format(factors)
 
     def run(self, first_run=True):
@@ -50,10 +51,11 @@ class Factor:
 
     def add_factor(self, p, k=1):
         """Add a prime factor ``p`` with multiplicity ``k``."""
-        if self.cofactor() % pow(p, k) != 0:
-            raise ValueError(f'{p}**{k} is not a factor of {self.cofactor()}')
+        if self.cofactor % pow(p, k) != 0:
+            raise ValueError(f'{p}**{k} is not a factor of {self.cofactor}')
 
         self.factors[p] = self.factors.get(p, 0) + k
+        self.cofactor //= pow(p, k)
 
     def add_cofactor(self, cofactor):
         """Add a (composite) factor to factor into primes."""
@@ -66,14 +68,6 @@ class Factor:
             factor.run(first_run=False)
             for p, k in factor.factors.items():
                 self.add_factor(p, k)
-
-    def cofactor(self):
-        """Return the number remaining to be factored."""
-        n = 1
-        for p, k in self.factors.items():
-            n *= p**k
-
-        return self.n // n
 
     def divisors(self):
         """
@@ -126,27 +120,24 @@ class Factor:
         if phi is not None:
             # factor n using phi
             # first, factor for squares
-            n = self.cofactor()
-            gcd = math.gcd(phi, n)
+            gcd = math.gcd(phi, self.cofactor)
             factor = Factor(gcd)
             factor.run()
             for p, k in factor.factors.items():
                 for m in range(k+1, 1, -1):
-                    if n % pow(p, m) == 0:
+                    if self.cofactor % pow(p, m) == 0:
                         self.add_factor(p, k=m)
                         break
 
             if not self.isfactored():
                 # next, factor for non-squares
-                n = self.cofactor()
                 factor = Factor(phi)
                 for divisor in factor.divisors():
-                    if n % (divisor + 1) == 0:
+                    if self.cofactor % (divisor + 1) == 0:
                         self.add_factor(divisor + 1)
-                        n //= divisor + 1
 
                 # the number should now be fully factored
-                if n != 1:
+                if not self.isfactored():
                     raise ValueError(f"phi({self.n}) cannot equal {phi}")
 
         # compute phi from the factors of n
@@ -280,17 +271,16 @@ class Factor:
 
         The method may add new factors to the factor list.
         """
-        cofactor = self.cofactor()
-        if cofactor == 1:
+        if self.cofactor == 1:
             return True
-        if self.isprime(cofactor):
-            self.add_factor(cofactor)
+        if self.isprime(self.cofactor):
+            self.add_factor(self.cofactor)
             return True
         return False
 
     def brent(self):
         """Brent's factorization algorithm."""
-        n = self.cofactor()
+        n = self.cofactor
         if n <= 2:
             return
 
@@ -327,7 +317,7 @@ class Factor:
         :param ratio: the ratio of factors
         :type ratio: tuple(int, int)
         """
-        n = self.cofactor()
+        n = self.cofactor
         isqrt_n = isqrt(n)
         if isqrt_n*isqrt_n == n:
             self.add_cofactor(isqrt_n)
@@ -350,10 +340,10 @@ class Factor:
             b2 = a*a - n
             b = isqrt(b2)
 
-        factor1 = math.gcd(self.cofactor(), a - b)
+        factor1 = math.gcd(self.cofactor, a - b)
         self.add_cofactor(factor1)
 
-        factor2 = math.gcd(self.cofactor(), a + b)
+        factor2 = math.gcd(self.cofactor, a + b)
         self.add_cofactor(factor2)
 
     def pollard_p1(self, bound, tries=math.inf):
@@ -364,7 +354,7 @@ class Factor:
         :param tries: the maximum number of tries before giving up
         :type tries: int or math.inf
         """
-        n = self.cofactor()
+        n = self.cofactor
 
         self.sieve(bound)
         primes = sorted(self.small_primes)
@@ -397,8 +387,6 @@ class Factor:
         """
         if max(self.small_primes) < max_prime:
             self.sieve(max_prime)
-        remainder = self.cofactor()
         for factor in self.small_primes:
-            while (remainder % factor) == 0:
-                remainder //= factor
+            while (self.cofactor % factor) == 0:
                 self.add_factor(factor)
