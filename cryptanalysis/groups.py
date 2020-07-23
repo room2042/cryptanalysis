@@ -392,11 +392,8 @@ class MultiplicativeGroup(GenericGroup):
         def __int__(self):
             return self.g
 
-        def __repr__(self):
-            return '{} (mod {})'.format(self.g, self.group.n)
-
         def __str__(self):
-            return str(self.g)
+            return '{} (mod {})'.format(self.g, self.group.n)
 
         def __eq__(self, other):
             if type(other) is int:
