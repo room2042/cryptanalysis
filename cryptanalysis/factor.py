@@ -1,9 +1,11 @@
+import logging
 import math
 import random
 
 from cryptanalysis.utils import ceildiv, isqrt, lcm
 
 
+logger = logging.getLogger(__name__)
 small_primes = {2, 3, 5, 7}
 
 
@@ -176,9 +178,9 @@ class Factor:
             if first_run:
                 self.smooth()
             while not self.isfactored():
-                if self.n.bit_length() >= 80:
-                    print('factoring {} '
-                          '(this might take a while)'.format(self.n))
+                if self.cofactor.bit_length() >= 80:
+                    logger.warning(f'factoring {self.cofactor} might take a '
+                                   'while')
                 self.pollard_rho()
 
     def add_factor(self, p, k=1):
