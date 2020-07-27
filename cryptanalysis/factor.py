@@ -432,7 +432,7 @@ class Factor:
         if c == 0 or c == -2:
             return ValueError('bad value for constant c')
 
-        if n <= 1:
+        if n <= 2:
             return
 
         def f(x):
