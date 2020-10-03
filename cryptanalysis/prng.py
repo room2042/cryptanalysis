@@ -184,7 +184,8 @@ class MersenneTwister:
         # at most self.n - 1, otherwise we cannot recover the entire key
         MAX_KEY_LENGTH = self.n - 1
 
-        u32 = lambda x: x % (1 << self.w)  # noqa: E731
+        def u32(x):
+            return x % (1 << self.w)
 
         # generate initial state
         initial_state = [19650218]
