@@ -11,6 +11,13 @@ pip install git+ssh://git@gitlab.com/room2042/cryptanalysis.git
 ## Documentation
 To generate the documentation, run `make html` from inside the `docs/` directory.
 
+## Development
+Install the package with `pip` using the `-e` option:
+
+```
+pip install --editable git+ssh://git@gitlab.com/room2042/cryptanalysis.git
+```
+
 ## unittests
 Several unittests are available.
 Run them using `python3 -m unittests`
