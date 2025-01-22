@@ -546,7 +546,7 @@ class MiddleSquareWeylSequence:
                 x = (self._u32(b[0]**2 + d0) << 32) + b[1]
                 w = self._u64((c0 << 32) + d0)
 
-                # Check if we have a found a corect sequence
+                # Check if we have a found a correct sequence
                 msws = MiddleSquareWeylSequence(self.s)
                 msws.set_state((x, w, 0))
                 if all(r_list[i] == msws.get_random()
