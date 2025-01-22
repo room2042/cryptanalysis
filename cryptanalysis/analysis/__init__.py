@@ -84,7 +84,7 @@ def hamming_weight(text):
         4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
     ]
 
-    hamming_weight =  0
+    hamming_weight = 0
     for byte in text:
         hamming_weight += byte_weights[byte]
 
@@ -272,3 +272,13 @@ class Language:
 
             score += self._log_score(string, n, ngrams)
         return score
+
+    def statistical_distance(self, string):
+        string_length = len(string)
+
+        distance = 0
+        for symbol, occurrence in collections.Counter(string).items():
+            probability = occurrence / string_length
+            distance += abs(probability - self.ngrams[1].get(symbol, 0))
+
+        return distance
